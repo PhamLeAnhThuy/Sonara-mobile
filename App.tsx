@@ -9,11 +9,13 @@ import { ProfileScreen } from './src/screens/ProfileScreen';
 import { SearchScreen } from './src/screens/SearchScreen';
 import { SignInScreen } from './src/screens/SignInScreen';
 import { SignUpScreen } from './src/screens/SignUpScreen';
+import { SonaraProvider, useSonara } from './src/state/SonaraContext';
 
-function App() {
+function AppShell() {
+  const { currentUser, logout, signIn, signUp } = useSonara();
   const [activeTab, setActiveTab] = React.useState<'home' | 'search' | 'library' | 'profile'>('home');
   const [libraryView, setLibraryView] = React.useState<'library' | 'playlist' | 'now-playing'>('library');
-  const [authView, setAuthView] = React.useState<'none' | 'signin' | 'signup'>('none');
+  const [authView, setAuthView] = React.useState<'signin' | 'signup'>('signin');
 
   useEffect(() => {
     // Force-load icon font on startup so glyphs do not render as missing boxes.
@@ -29,23 +31,45 @@ function App() {
     }
   };
 
-  const renderScreen = () => {
-    if (authView === 'signin') {
-      return (
-        <SignInScreen
-          onBack={() => setAuthView('none')}
-          onGoToSignUp={() => setAuthView('signup')}
-          onSubmit={() => setAuthView('none')}
-        />
-      );
+  const handleSignIn = (email: string, password: string) => {
+    const result = signIn(email, password);
+
+    if (result.ok) {
+      setActiveTab('home');
+      setLibraryView('library');
     }
 
-    if (authView === 'signup') {
+    return result;
+  };
+
+  const handleSignUp = (name: string, email: string, password: string) => {
+    const result = signUp(name, email, password);
+
+    if (result.ok) {
+      setActiveTab('home');
+      setLibraryView('library');
+    }
+
+    return result;
+  };
+
+  const renderScreen = () => {
+    if (!currentUser) {
+      if (authView === 'signup') {
+        return (
+          <SignUpScreen
+            onBack={() => setAuthView('signin')}
+            onGoToSignIn={() => setAuthView('signin')}
+            onSubmit={handleSignUp}
+          />
+        );
+      }
+
       return (
-        <SignUpScreen
-          onBack={() => setAuthView('none')}
-          onGoToSignIn={() => setAuthView('signin')}
-          onSubmit={() => setAuthView('none')}
+        <SignInScreen
+          onBack={() => setAuthView('signin')}
+          onGoToSignUp={() => setAuthView('signup')}
+          onSubmit={handleSignIn}
         />
       );
     }
@@ -67,7 +91,7 @@ function App() {
     }
 
     if (activeTab === 'profile') {
-      return <ProfileScreen onSignOut={() => setAuthView('signin')} onTabPress={handleTabPress} />;
+      return <ProfileScreen onSignOut={() => { logout(); setActiveTab('home'); setLibraryView('library'); setAuthView('signin'); }} onTabPress={handleTabPress} />;
     }
 
     return <HomeScreen onTabPress={handleTabPress} />;
@@ -77,6 +101,14 @@ function App() {
     <SafeAreaProvider>
       {renderScreen()}
     </SafeAreaProvider>
+  );
+}
+
+function App() {
+  return (
+    <SonaraProvider>
+      <AppShell />
+    </SonaraProvider>
   );
 }
 

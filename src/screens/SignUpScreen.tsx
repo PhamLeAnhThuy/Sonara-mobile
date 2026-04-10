@@ -16,7 +16,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 interface SignUpScreenProps {
   onBack: () => void;
   onGoToSignIn: () => void;
-  onSubmit: () => void;
+  onSubmit: (name: string, email: string, password: string) => { ok: boolean; message?: string };
 }
 
 export function SignUpScreen({ onBack, onGoToSignIn, onSubmit }: SignUpScreenProps) {
@@ -24,6 +24,7 @@ export function SignUpScreen({ onBack, onGoToSignIn, onSubmit }: SignUpScreenPro
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [showPassword, setShowPassword] = React.useState(false);
+  const [error, setError] = React.useState('');
 
   const verticalLines = Array.from({ length: 12 });
   const horizontalLines = Array.from({ length: 28 });
@@ -111,13 +112,22 @@ export function SignUpScreen({ onBack, onGoToSignIn, onSubmit }: SignUpScreenPro
               </View>
 
               <View style={styles.ctaWrap}>
-                <TouchableOpacity activeOpacity={0.92} onPress={onSubmit} style={styles.registerButton}>
+                <TouchableOpacity
+                  activeOpacity={0.92}
+                  onPress={() => {
+                    const result = onSubmit(name, email, password);
+                    setError(result.ok ? '' : result.message ?? 'Unable to create account.');
+                  }}
+                  style={styles.registerButton}
+                >
                   <View pointerEvents="none" style={styles.sketchBracket} />
                   <View style={styles.registerContent}>
                     <Text style={styles.registerButtonText}>Register</Text>
                     <MaterialIcons color="#6D5658" name="arrow-right-alt" size={18} />
                   </View>
                 </TouchableOpacity>
+
+                {error ? <Text style={styles.errorText}>{error}</Text> : null}
               </View>
             </View>
 
@@ -326,5 +336,13 @@ const styles = StyleSheet.create({
     lineHeight: 14,
     color: '#6D5658',
     textDecorationLine: 'underline',
+  },
+  errorText: {
+    marginTop: 10,
+    fontFamily: 'Inter_18pt-Regular',
+    fontSize: 12,
+    lineHeight: 16,
+    color: '#B31B25',
+    textAlign: 'center',
   },
 });

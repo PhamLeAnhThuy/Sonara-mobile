@@ -16,13 +16,14 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 interface SignInScreenProps {
   onBack: () => void;
   onGoToSignUp: () => void;
-  onSubmit: () => void;
+  onSubmit: (email: string, password: string) => { ok: boolean; message?: string };
 }
 
 export function SignInScreen({ onBack, onGoToSignUp, onSubmit }: SignInScreenProps) {
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [showPassword, setShowPassword] = React.useState(false);
+  const [error, setError] = React.useState('');
 
   const verticalLines = Array.from({ length: 12 });
   const horizontalLines = Array.from({ length: 28 });
@@ -94,10 +95,19 @@ export function SignInScreen({ onBack, onGoToSignUp, onSubmit }: SignInScreenPro
               </View>
 
               <View style={styles.ctaWrap}>
-                <TouchableOpacity activeOpacity={0.92} onPress={onSubmit} style={styles.loginButton}>
+                <TouchableOpacity
+                  activeOpacity={0.92}
+                  onPress={() => {
+                    const result = onSubmit(email, password);
+                    setError(result.ok ? '' : result.message ?? 'Unable to sign in.');
+                  }}
+                  style={styles.loginButton}
+                >
                   <View pointerEvents="none" style={styles.sketchBracket} />
                   <Text style={styles.loginButtonText}>Login to SONARA</Text>
                 </TouchableOpacity>
+
+                {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
                 <TouchableOpacity activeOpacity={0.82} style={styles.forgotWrap}>
                   <Text style={styles.forgotText}>Forgot Blueprint?</Text>
@@ -298,6 +308,15 @@ const styles = StyleSheet.create({
     letterSpacing: 1.2,
     textTransform: 'uppercase',
     color: '#787678',
+  },
+  errorText: {
+    marginTop: 10,
+    marginBottom: 2,
+    fontFamily: 'Inter_18pt-Regular',
+    fontSize: 12,
+    lineHeight: 16,
+    color: '#B31B25',
+    textAlign: 'center',
   },
   footerWrap: {
     marginTop: 50,

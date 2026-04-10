@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { BottomTabBar } from '../components/BottomTabBar';
 import { TopAppBar } from '../components/TopAppBar';
+import { useSonara } from '../state/SonaraContext';
 
 interface ProfileScreenProps {
   onTabPress: (tab: 'home' | 'search' | 'library' | 'profile') => void;
@@ -18,6 +19,7 @@ const settingsRows = [
 ];
 
 export function ProfileScreen({ onSignOut, onTabPress }: ProfileScreenProps) {
+  const { currentUser } = useSonara();
   const verticalLines = Array.from({ length: 12 });
   const horizontalLines = Array.from({ length: 28 });
 
@@ -59,8 +61,8 @@ export function ProfileScreen({ onSignOut, onTabPress }: ProfileScreenProps) {
             </View>
 
             <View style={styles.identityWrap}>
-              <Text style={styles.name}>Alex Rivera</Text>
-              <Text style={styles.email}>alex.rivera@archaudio.tech</Text>
+              <Text style={styles.name}>{currentUser?.name ?? 'Alex Rivera'}</Text>
+              <Text style={styles.email}>{currentUser?.email ?? 'alex.rivera@archaudio.tech'}</Text>
               <View style={styles.refBadge}>
                 <Text style={styles.refBadgeText}>REF-001-USER</Text>
               </View>
