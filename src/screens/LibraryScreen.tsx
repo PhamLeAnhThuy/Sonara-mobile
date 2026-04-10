@@ -7,6 +7,7 @@ import { TopAppBar } from '../components/TopAppBar';
 
 interface LibraryScreenProps {
   onTabPress: (tab: 'home' | 'search' | 'library' | 'profile') => void;
+  onOpenPlaylistView: () => void;
 }
 
 type LibraryItem = {
@@ -29,7 +30,7 @@ const items: LibraryItem[] = [
   { id: '5', title: 'Liked Songs', meta: 'Playlist • 128 songs', badge: 'pin', heart: true },
 ];
 
-export function LibraryScreen({ onTabPress }: LibraryScreenProps) {
+export function LibraryScreen({ onOpenPlaylistView, onTabPress }: LibraryScreenProps) {
   const verticalLines = Array.from({ length: 12 });
   const horizontalLines = Array.from({ length: 28 });
 
@@ -77,7 +78,12 @@ export function LibraryScreen({ onTabPress }: LibraryScreenProps) {
 
         <View style={styles.listWrap}>
           {items.map(item => (
-            <TouchableOpacity activeOpacity={0.85} key={item.id} style={styles.rowItem}>
+            <TouchableOpacity
+              activeOpacity={0.85}
+              key={item.id}
+              onPress={item.id === '1' ? onOpenPlaylistView : undefined}
+              style={styles.rowItem}
+            >
               <View style={[styles.thumbWrap, item.circle ? styles.thumbCircle : null]}>
                 <View style={styles.cornerTopLeft} />
                 <View style={styles.cornerBottomRight} />
