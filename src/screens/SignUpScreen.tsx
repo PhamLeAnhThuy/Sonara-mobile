@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { TopAppBar } from '../components/TopAppBar';
 
 interface SignUpScreenProps {
   onBack: () => void;
@@ -39,6 +40,8 @@ export function SignUpScreen({ onBack, onGoToSignIn, onSubmit }: SignUpScreenPro
           <View key={`h-${index}`} style={[styles.horizontalLine, { top: index * 40 }]} />
         ))}
       </View>
+
+      <TopAppBar />
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.flex}>
         <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
@@ -173,7 +176,8 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
-    paddingVertical: 28,
+    paddingTop: 56,
+    paddingBottom: 28,
   },
   mainShell: {
     width: '100%',

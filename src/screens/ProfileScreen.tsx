@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   scrollContent: {
-    paddingTop: 88,
+    paddingTop: 56,
     paddingBottom: 168,
   },
   contentWrap: {
