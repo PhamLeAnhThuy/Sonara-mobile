@@ -5,6 +5,7 @@ import { HomeScreen } from './src/screens/HomeScreen';
 import { LibraryScreen } from './src/screens/LibraryScreen';
 import { NowPlayingScreen } from './src/screens/NowPlayingScreen';
 import { PlaylistViewScreen } from './src/screens/PlaylistViewScreen';
+import { ProfileScreen } from './src/screens/ProfileScreen';
 import { SearchScreen } from './src/screens/SearchScreen';
 
 function App() {
@@ -40,6 +41,10 @@ function App() {
       }
 
       return <LibraryScreen onOpenPlaylistView={() => setLibraryView('playlist')} onTabPress={handleTabPress} />;
+    }
+
+    if (activeTab === 'profile') {
+      return <ProfileScreen onTabPress={handleTabPress} />;
     }
 
     return <HomeScreen onTabPress={handleTabPress} />;
