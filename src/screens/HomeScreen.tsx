@@ -1,11 +1,12 @@
 import React from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { BottomTabBar } from '../components/BottomTabBar';
 import { MiniPlayer } from '../components/MiniPlayer';
 import { NeumorphicView } from '../components/NeumorphicView';
 import { TopAppBar } from '../components/TopAppBar';
+import { useSonara } from '../state/SonaraContext';
 
 const recommended = [
   { id: 'S-01', title: 'Kinetic Structures', subtitle: 'The Blueprint Collective', icon: 'architecture' },
@@ -35,8 +36,14 @@ interface HomeScreenProps {
 }
 
 export function HomeScreen({ onTabPress }: HomeScreenProps) {
+  const { artists, playTrack, tracks } = useSonara();
   const verticalLines = Array.from({ length: 12 });
   const horizontalLines = Array.from({ length: 28 });
+  const trackByTitle = React.useMemo(() => new Map(tracks.map(track => [track.title, track] as const)), [tracks]);
+  const recommendedItems = recommended.map(item => ({ ...item, track: trackByTitle.get(item.title) }));
+  const trendingItems = trending.map(item => ({ ...item, track: trackByTitle.get(item.title) }));
+  const recentItems = recentListening.map(item => ({ ...item, track: trackByTitle.get(item.title) }));
+  const favouriteArtistItems = artists.filter(artist => tracks.some(track => track.artistId === artist.id && track.favouriteArtist));
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -74,8 +81,13 @@ export function HomeScreen({ onTabPress }: HomeScreenProps) {
             showsHorizontalScrollIndicator={false}
             style={styles.recommendedScroll}
           >
-            {recommended.map((item, index) => (
-              <View key={item.id} style={[styles.card, index === recommended.length - 1 ? styles.cardLast : null]}>
+            {recommendedItems.map((item, index) => (
+              <TouchableOpacity
+                activeOpacity={0.9}
+                key={item.id}
+                onPress={() => item.track && playTrack(item.track.id, recommendedItems.map(entry => entry.track?.id).filter(Boolean) as string[])}
+                style={[styles.card, index === recommendedItems.length - 1 ? styles.cardLast : null]}
+              >
                 <NeumorphicView borderRadius={32} style={styles.cardShell} variant="outset">
                   <NeumorphicView borderRadius={16} style={styles.cardArt} variant="inset">
                     {item.id === 'S-01' ? <View style={styles.cardDashInset} /> : null}
@@ -95,7 +107,7 @@ export function HomeScreen({ onTabPress }: HomeScreenProps) {
                     <Text style={styles.cardSubtitle}>{item.subtitle}</Text>
                   </View>
                 </NeumorphicView>
-              </View>
+              </TouchableOpacity>
             ))}
           </ScrollView>
         </View>
@@ -110,8 +122,13 @@ export function HomeScreen({ onTabPress }: HomeScreenProps) {
           </View>
 
           <View style={styles.trendingList}>
-            {trending.map(item => (
-              <TouchableOpacity activeOpacity={0.85} key={item.id} style={styles.trendingItem}>
+            {trendingItems.map(item => (
+              <TouchableOpacity
+                activeOpacity={0.85}
+                key={item.id}
+                onPress={() => item.track && playTrack(item.track.id, trendingItems.map(entry => entry.track?.id).filter(Boolean) as string[])}
+                style={styles.trendingItem}
+              >
                 <NeumorphicView borderRadius={12} style={styles.trendingIconWrap} variant="inset">
                   <MaterialIcons color="rgba(109, 86, 88, 0.40)" name={item.icon} size={22} />
                 </NeumorphicView>
@@ -138,8 +155,13 @@ export function HomeScreen({ onTabPress }: HomeScreenProps) {
           </View>
 
           <View style={styles.trendingList}>
-            {recentListening.map(item => (
-              <TouchableOpacity activeOpacity={0.85} key={item.id} style={styles.trendingItem}>
+            {recentItems.map(item => (
+              <TouchableOpacity
+                activeOpacity={0.85}
+                key={item.id}
+                onPress={() => item.track && playTrack(item.track.id, recentItems.map(entry => entry.track?.id).filter(Boolean) as string[])}
+                style={styles.trendingItem}
+              >
                 <NeumorphicView borderRadius={12} style={styles.trendingIconWrap} variant="inset">
                   <MaterialIcons color="rgba(109, 86, 88, 0.40)" name={item.icon} size={22} />
                 </NeumorphicView>
@@ -166,16 +188,12 @@ export function HomeScreen({ onTabPress }: HomeScreenProps) {
           </View>
 
           <ScrollView contentContainerStyle={styles.archivedRow} horizontal showsHorizontalScrollIndicator={false}>
-            {archived.map(item => (
+            {favouriteArtistItems.map(item => (
               <View key={item.id} style={styles.archiveItem}>
                 <NeumorphicView borderRadius={999} style={styles.archiveBubble} variant="outset">
-                  {item.icon ? (
-                    <MaterialIcons color="#6D5658" name={item.icon} size={24} />
-                  ) : (
-                    <Text style={styles.archiveSymbol}>{item.symbol}</Text>
-                  )}
+                  <Image source={{ uri: item.imageUri }} style={styles.artistImage} />
                 </NeumorphicView>
-                <Text style={styles.archiveLabel}>{item.label}</Text>
+                <Text style={styles.archiveLabel}>{item.name}</Text>
               </View>
             ))}
           </ScrollView>
@@ -468,6 +486,11 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     shadowOffset: { width: 5, height: 6 },
     elevation: 5,
+  },
+  artistImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 999,
   },
   archiveSymbol: {
     fontFamily: 'SpaceGrotesk-Variable',

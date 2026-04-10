@@ -6,6 +6,7 @@ import { BottomTabBar } from '../components/BottomTabBar';
 import { MiniPlayer } from '../components/MiniPlayer';
 import { NeumorphicView } from '../components/NeumorphicView';
 import { TopAppBar } from '../components/TopAppBar';
+import { useSonara } from '../state/SonaraContext';
 
 interface SearchScreenProps {
   onTabPress: (tab: 'home' | 'search' | 'library' | 'profile') => void;
@@ -23,8 +24,20 @@ const genres = [
 ];
 
 export function SearchScreen({ onTabPress }: SearchScreenProps) {
+  const { artists, playTrack, tracks } = useSonara();
+  const [query, setQuery] = React.useState('');
   const verticalLines = Array.from({ length: 12 });
   const horizontalLines = Array.from({ length: 28 });
+  const normalizedQuery = query.trim().toLowerCase();
+  const trackResults = normalizedQuery
+    ? tracks.filter(track => [track.title, track.album, track.tags.join(' '), track.artistId]
+        .join(' ')
+        .toLowerCase()
+        .includes(normalizedQuery))
+    : tracks.filter(track => track.trending).slice(0, 4);
+  const artistResults = normalizedQuery
+    ? artists.filter(artist => [artist.name, artist.genre, artist.bio].join(' ').toLowerCase().includes(normalizedQuery))
+    : artists.slice(0, 4);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -50,9 +63,11 @@ export function SearchScreen({ onTabPress }: SearchScreenProps) {
             <NeumorphicView borderRadius={16} style={styles.searchInputWrap} variant="inset">
               <MaterialIcons color="rgba(109, 86, 88, 0.60)" name="search" size={22} style={styles.leftIcon} />
               <TextInput
+                onChangeText={setQuery}
                 placeholder="Artists, songs, or podcasts"
                 placeholderTextColor="rgba(120, 118, 120, 0.40)"
                 style={styles.searchInput}
+                value={query}
               />
               <View style={styles.rightIconsWrap}>
                 <MaterialIcons color="rgba(109, 86, 88, 0.40)" name="close" size={22} />
@@ -76,6 +91,52 @@ export function SearchScreen({ onTabPress }: SearchScreenProps) {
                   </View>
                 </NeumorphicView>
               </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        <View style={styles.sectionResults}>
+          <Text style={styles.sectionLabel}>Results</Text>
+
+          <View style={styles.resultGroup}>
+            <Text style={styles.resultHeading}>Songs</Text>
+            {trackResults.map(track => {
+              const artist = artists.find(item => item.id === track.artistId);
+
+              return (
+                <TouchableOpacity
+                  activeOpacity={0.88}
+                  key={track.id}
+                  onPress={() => playTrack(track.id, trackResults.map(item => item.id))}
+                  style={styles.resultRow}
+                >
+                  <NeumorphicView borderRadius={14} style={styles.resultThumb} variant="inset">
+                    <MaterialIcons color="rgba(109, 86, 88, 0.32)" name="music-note" size={20} />
+                  </NeumorphicView>
+
+                  <View style={styles.resultInfo}>
+                    <Text numberOfLines={1} style={styles.resultTitle}>{track.title}</Text>
+                    <Text numberOfLines={1} style={styles.resultMeta}>{artist?.name ?? track.artistId} • {track.album}</Text>
+                  </View>
+
+                  <Text style={styles.resultDuration}>{track.duration}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          <View style={styles.resultGroup}>
+            <Text style={styles.resultHeading}>Artists</Text>
+            {artistResults.map(artist => (
+              <View key={artist.id} style={styles.artistRow}>
+                <NeumorphicView borderRadius={999} style={styles.artistAvatar} variant="outset">
+                  <MaterialIcons color="#6D5658" name="person" size={24} />
+                </NeumorphicView>
+                <View style={styles.resultInfo}>
+                  <Text style={styles.resultTitle}>{artist.name}</Text>
+                  <Text numberOfLines={1} style={styles.resultMeta}>{artist.genre}</Text>
+                </View>
+              </View>
             ))}
           </View>
         </View>
@@ -187,6 +248,10 @@ const styles = StyleSheet.create({
   section: {
     paddingHorizontal: 24,
   },
+  sectionResults: {
+    paddingHorizontal: 24,
+    marginTop: 32,
+  },
   sectionLabel: {
     fontFamily: 'SpaceGrotesk-Variable',
     fontWeight: '700',
@@ -225,5 +290,72 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     marginRight: -4,
     marginBottom: -4,
+  },
+  resultGroup: {
+    marginBottom: 24,
+  },
+  resultHeading: {
+    fontFamily: 'SpaceGrotesk-Variable',
+    fontWeight: '700',
+    fontSize: 14,
+    lineHeight: 18,
+    color: '#2F2E30',
+    marginBottom: 12,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+  resultRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 12,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.36)',
+    marginBottom: 10,
+  },
+  resultThumb: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  resultInfo: {
+    flex: 1,
+    minWidth: 0,
+  },
+  resultTitle: {
+    fontFamily: 'SpaceGrotesk-Variable',
+    fontWeight: '700',
+    fontSize: 14,
+    lineHeight: 18,
+    color: '#2F2E30',
+  },
+  resultMeta: {
+    marginTop: 2,
+    fontFamily: 'Inter-Variable',
+    fontSize: 12,
+    lineHeight: 16,
+    color: '#5C5B5D',
+  },
+  resultDuration: {
+    fontFamily: 'SpaceGrotesk-Variable',
+    fontSize: 10,
+    lineHeight: 12,
+    color: 'rgba(109, 86, 88, 0.50)',
+  },
+  artistRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 12,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.36)',
+    marginBottom: 10,
+  },
+  artistAvatar: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
