@@ -7,6 +7,7 @@ import { TopAppBar } from '../components/TopAppBar';
 
 interface ProfileScreenProps {
   onTabPress: (tab: 'home' | 'search' | 'library' | 'profile') => void;
+  onSignOut: () => void;
 }
 
 const settingsRows = [
@@ -16,7 +17,7 @@ const settingsRows = [
   { icon: 'help-center', title: 'Help Center' },
 ];
 
-export function ProfileScreen({ onTabPress }: ProfileScreenProps) {
+export function ProfileScreen({ onSignOut, onTabPress }: ProfileScreenProps) {
   const verticalLines = Array.from({ length: 12 });
   const horizontalLines = Array.from({ length: 28 });
 
@@ -91,7 +92,7 @@ export function ProfileScreen({ onTabPress }: ProfileScreenProps) {
           </View>
 
           <View style={styles.logoutWrap}>
-            <TouchableOpacity activeOpacity={0.86} style={styles.signOutBtn}>
+            <TouchableOpacity activeOpacity={0.86} onPress={onSignOut} style={styles.signOutBtn}>
               <Text style={styles.signOutText}>Sign Out Protocol</Text>
             </TouchableOpacity>
 
