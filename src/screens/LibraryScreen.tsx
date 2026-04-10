@@ -1,36 +1,22 @@
 import React from 'react';
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { BottomTabBar } from '../components/BottomTabBar';
 import { TopAppBar } from '../components/TopAppBar';
+import { useSonara } from '../state/SonaraContext';
 
 interface LibraryScreenProps {
   onTabPress: (tab: 'home' | 'search' | 'library' | 'profile') => void;
-  onOpenPlaylistView: () => void;
+  onOpenPlaylistView: (playlistId: string) => void;
 }
-
-type LibraryItem = {
-  id: string;
-  title: string;
-  meta: string;
-  badge?: 'pin' | 'download' | null;
-  circle?: boolean;
-  symbol?: string;
-  heart?: boolean;
-};
 
 const chips = ['Playlists', 'Artists', 'Albums', 'Downloads'];
 
-const items: LibraryItem[] = [
-  { id: '1', title: 'Late Night Focus', meta: 'Playlist • 24 tracks', badge: 'pin', symbol: 'LF' },
-  { id: '2', title: 'Structure & Soul', meta: 'Playlist • The Blueprint Collective', symbol: 'SS' },
-  { id: '3', title: 'The Blueprint Collective', meta: 'Artist', circle: true, symbol: 'BC' },
-  { id: '4', title: 'Drafting Phases', meta: 'Album • 2024', badge: 'download', symbol: 'DP' },
-  { id: '5', title: 'Liked Songs', meta: 'Playlist • 128 songs', badge: 'pin', heart: true },
-];
-
 export function LibraryScreen({ onOpenPlaylistView, onTabPress }: LibraryScreenProps) {
+  const { createPlaylist, currentArtist, currentTrack, isPlaying, playlists, playNext, playPrevious, selectPlaylist, togglePlayback, tracks } = useSonara();
+  const [newPlaylistName, setNewPlaylistName] = React.useState('');
+  const [newPlaylistDescription, setNewPlaylistDescription] = React.useState('');
   const verticalLines = Array.from({ length: 12 });
   const horizontalLines = Array.from({ length: 28 });
 
@@ -76,40 +62,69 @@ export function LibraryScreen({ onOpenPlaylistView, onTabPress }: LibraryScreenP
           </View>
         </View>
 
+        <View style={styles.createCard}>
+          <Text style={styles.createTitle}>Create Playlist</Text>
+          <TextInput
+            onChangeText={setNewPlaylistName}
+            placeholder="Playlist name"
+            placeholderTextColor="rgba(120, 118, 120, 0.45)"
+            style={styles.createInput}
+            value={newPlaylistName}
+          />
+          <TextInput
+            onChangeText={setNewPlaylistDescription}
+            placeholder="Short description"
+            placeholderTextColor="rgba(120, 118, 120, 0.45)"
+            style={[styles.createInput, styles.createTextarea]}
+            value={newPlaylistDescription}
+            multiline
+          />
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={() => {
+              if (!newPlaylistName.trim()) {
+                return;
+              }
+
+              const playlist = createPlaylist(newPlaylistName.trim(), newPlaylistDescription.trim());
+              setNewPlaylistName('');
+              setNewPlaylistDescription('');
+              selectPlaylist(playlist.id);
+              onOpenPlaylistView(playlist.id);
+            }}
+            style={styles.createButton}
+          >
+            <MaterialIcons color="#6D5658" name="playlist-add" size={18} />
+            <Text style={styles.createButtonText}>Create</Text>
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.listWrap}>
-          {items.map(item => (
+          {playlists.map(item => (
             <TouchableOpacity
               activeOpacity={0.85}
               key={item.id}
-              onPress={item.id === '1' ? onOpenPlaylistView : undefined}
+              onPress={() => {
+                selectPlaylist(item.id);
+                onOpenPlaylistView(item.id);
+              }}
               style={styles.rowItem}
             >
-              <View style={[styles.thumbWrap, item.circle ? styles.thumbCircle : null]}>
+              <View style={styles.thumbWrap}>
                 <View style={styles.cornerTopLeft} />
                 <View style={styles.cornerBottomRight} />
 
-                {item.heart ? (
-                  <MaterialIcons color="#6D5658" name="favorite" size={26} />
-                ) : (
-                  <Text style={styles.thumbText}>{item.symbol}</Text>
-                )}
+                <Text style={styles.thumbText}>{item.name.slice(0, 2).toUpperCase()}</Text>
               </View>
 
               <View style={styles.rowInfo}>
                 <Text numberOfLines={1} style={styles.rowTitle}>
-                  {item.title}
+                  {item.name}
                 </Text>
 
                 <View style={styles.metaRow}>
-                  {item.badge === 'pin' ? (
-                    <MaterialIcons color="#6D5658" name="push-pin" size={12} />
-                  ) : null}
-                  {item.badge === 'download' ? (
-                    <MaterialIcons color="#35626C" name="download-for-offline" size={12} />
-                  ) : null}
-
                   <Text numberOfLines={1} style={styles.rowMeta}>
-                    {item.meta}
+                    {item.description} • {item.trackIds.length} tracks
                   </Text>
                 </View>
               </View>
@@ -122,28 +137,28 @@ export function LibraryScreen({ onOpenPlaylistView, onTabPress }: LibraryScreenP
         <View style={styles.playerShell}>
           <Image
             source={{
-              uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCdkeZiYpXMErutdazzK7jr9DM3L66bArrxO-Xiq6_p7lGFWCzNTIHgJX6c1wTozqIE6ldCq8gNlaGPGa2XGPnDZ8oKvKJmppa4Gl7qAN9yukXNPxHQw0sMs58e6URCMcZwrcnnlrp7j7eK0BFh1C4zeEVEZki-YzTKgCXj9COCTKOR-4cviBakYc78nGs_6D4sbvofFiuYTtejte8JJ8QDzHYwJQyIrRHoDjyTspjG7P-ewS0xdzklaFwFQHf9FvyN01LEVlx1',
+              uri: currentTrack.artworkUri,
             }}
             style={styles.playerImage}
           />
 
           <View style={styles.playerInfo}>
             <Text numberOfLines={1} style={styles.playerTitle}>
-              Perspective Grid
+              {currentTrack.title}
             </Text>
             <Text numberOfLines={1} style={styles.playerSubtitle}>
-              The Blueprint Collective
+              {currentArtist.name}
             </Text>
           </View>
 
           <View style={styles.playerControls}>
-            <TouchableOpacity activeOpacity={0.8} style={styles.playerIconBtn}>
+            <TouchableOpacity activeOpacity={0.8} onPress={playPrevious} style={styles.playerIconBtn}>
               <MaterialIcons color="#6D5658" name="skip-previous" size={21} />
             </TouchableOpacity>
-            <TouchableOpacity activeOpacity={0.8} style={styles.playerPlayBtn}>
-              <MaterialIcons color="#6D5658" name="play-arrow" size={21} />
+            <TouchableOpacity activeOpacity={0.8} onPress={togglePlayback} style={styles.playerPlayBtn}>
+              <MaterialIcons color="#6D5658" name={isPlaying ? 'pause' : 'play-arrow'} size={21} />
             </TouchableOpacity>
-            <TouchableOpacity activeOpacity={0.8} style={styles.playerIconBtn}>
+            <TouchableOpacity activeOpacity={0.8} onPress={playNext} style={styles.playerIconBtn}>
               <MaterialIcons color="#6D5658" name="skip-next" size={21} />
             </TouchableOpacity>
           </View>
@@ -255,6 +270,60 @@ const styles = StyleSheet.create({
   listWrap: {
     paddingHorizontal: 24,
     gap: 8,
+  },
+  createCard: {
+    marginHorizontal: 24,
+    marginBottom: 20,
+    padding: 16,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.42)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.6)',
+    gap: 12,
+  },
+  createTitle: {
+    fontFamily: 'SpaceGrotesk-Variable',
+    fontSize: 14,
+    lineHeight: 18,
+    fontWeight: '700',
+    color: '#2F2E30',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  createInput: {
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    backgroundColor: '#F9F5F7',
+    fontFamily: 'Inter-Variable',
+    color: '#2F2E30',
+    shadowColor: '#E5BCBE',
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    shadowOffset: { width: 3, height: 3 },
+    elevation: 2,
+  },
+  createTextarea: {
+    minHeight: 72,
+    textAlignVertical: 'top',
+  },
+  createButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    borderRadius: 14,
+    backgroundColor: '#F8D8DB',
+  },
+  createButtonText: {
+    fontFamily: 'SpaceGrotesk-Variable',
+    fontWeight: '700',
+    fontSize: 12,
+    lineHeight: 14,
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+    color: '#6D5658',
   },
   rowItem: {
     flexDirection: 'row',
