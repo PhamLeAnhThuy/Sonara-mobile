@@ -18,6 +18,11 @@ const trending = [
   { id: '2', title: 'Brutalist Harmony', subtitle: 'Stone & Light', time: '03:51', icon: 'change-history' },
 ];
 
+const recentListening = [
+  { id: '1', title: 'Kinetic Structures', subtitle: 'The Blueprint Collective', time: '03:18', icon: 'architecture' },
+  { id: '2', title: 'Axis Alignment', subtitle: 'Isometric Theory', time: '02:54', icon: 'square-foot' },
+];
+
 const archived = [
   { id: '1', label: 'Acoustic', symbol: 'AE', icon: null },
   { id: '2', label: 'Trinity', symbol: '', icon: 'change-history' },
@@ -53,8 +58,8 @@ export function HomeScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <View>
-              <Text style={styles.sectionPreTitle}>Curated Architecture</Text>
-              <Text style={styles.sectionTitle}>Recommended for You</Text>
+              <Text style={styles.sectionPreTitle}>For You</Text>
+              <Text style={styles.sectionTitle}>Recommended</Text>
             </View>
             <Text style={styles.sectionRef}>REF-092</Text>
           </View>
@@ -94,8 +99,8 @@ export function HomeScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <View>
-              <Text style={styles.sectionPreTitle}>Daily Calculations</Text>
-              <Text style={styles.sectionTitle}>Trending Blueprints</Text>
+              <Text style={styles.sectionPreTitle}>Discover</Text>
+              <Text style={styles.sectionTitle}>Trending</Text>
             </View>
             <Text style={styles.sectionRef}>REF-105</Text>
           </View>
@@ -119,13 +124,41 @@ export function HomeScreen() {
           </View>
         </View>
 
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <View>
+              <Text style={styles.sectionPreTitle}>History</Text>
+              <Text style={styles.sectionTitle}>Recent Listening</Text>
+            </View>
+            <Text style={styles.sectionRef}>REF-004</Text>
+          </View>
+
+          <View style={styles.trendingList}>
+            {recentListening.map(item => (
+              <TouchableOpacity activeOpacity={0.85} key={item.id} style={styles.trendingItem}>
+                <NeumorphicView borderRadius={12} style={styles.trendingIconWrap} variant="inset">
+                  <MaterialIcons color="rgba(109, 86, 88, 0.40)" name={item.icon} size={22} />
+                </NeumorphicView>
+                <View style={styles.trendingInfo}>
+                  <Text style={styles.trendingTitle}>{item.title}</Text>
+                  <Text style={styles.trendingSubtitle}>{item.subtitle}</Text>
+                </View>
+                <View style={styles.trendingAction}>
+                  <Text style={styles.trendingTime}>{item.time}</Text>
+                  <MaterialIcons color="#6D5658" name="play-circle" size={26} />
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
         <View style={styles.sectionLast}>
           <View style={styles.sectionHeader}>
             <View>
-              <Text style={styles.sectionPreTitle}>Historical Data</Text>
-              <Text style={styles.sectionTitle}>Archived Sessions</Text>
+              <Text style={styles.sectionPreTitle}>Artists</Text>
+              <Text style={styles.sectionTitle}>Favourite Artists</Text>
             </View>
-            <Text style={styles.sectionRef}>REF-004</Text>
+            <Text style={styles.sectionRef}>REF-006</Text>
           </View>
 
           <ScrollView contentContainerStyle={styles.archivedRow} horizontal showsHorizontalScrollIndicator={false}>
@@ -263,6 +296,11 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(109, 86, 88, 0.15)',
     padding: 16,
     backgroundColor: '#F4F0F2',
+    shadowColor: '#A88589',
+    shadowOpacity: 0.2,
+    shadowRadius: 14,
+    shadowOffset: { width: 7, height: 8 },
+    elevation: 7,
   },
   cardArt: {
     width: '100%',
@@ -360,6 +398,9 @@ const styles = StyleSheet.create({
     gap: 16,
     padding: 12,
     borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.35)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.55)',
   },
   trendingIconWrap: {
     width: 56,
@@ -418,6 +459,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#A88589',
+    shadowOpacity: 0.18,
+    shadowRadius: 10,
+    shadowOffset: { width: 5, height: 6 },
+    elevation: 5,
   },
   archiveSymbol: {
     fontFamily: 'SpaceGrotesk-Variable',

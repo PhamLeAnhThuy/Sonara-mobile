@@ -5,30 +5,32 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 export function MiniPlayer() {
   return (
     <View style={styles.container}>
-      <View style={styles.inner}>
-        <View style={styles.albumWrap}>
-          <MaterialIcons color="#6D5658" name="architecture" size={22} />
-        </View>
-
-        <View style={styles.infoWrap}>
-          <Text numberOfLines={1} style={styles.title}>
-            Kinetic Structures
-          </Text>
-          <View style={styles.progressTrack}>
-            <View style={styles.progressFill} />
+      <View style={styles.shell}>
+        <View style={styles.inner}>
+          <View style={styles.albumWrap}>
+            <MaterialIcons color="#6D5658" name="architecture" size={22} />
           </View>
-        </View>
 
-        <View style={styles.controls}>
-          <TouchableOpacity activeOpacity={0.8} style={styles.iconControl}>
-            <MaterialIcons color="#6D5658" name="skip-previous" size={20} />
-          </TouchableOpacity>
-          <TouchableOpacity activeOpacity={0.8} style={styles.playButton}>
-            <MaterialIcons color="#6D5658" name="play-arrow" size={24} />
-          </TouchableOpacity>
-          <TouchableOpacity activeOpacity={0.8} style={styles.iconControl}>
-            <MaterialIcons color="#6D5658" name="skip-next" size={20} />
-          </TouchableOpacity>
+          <View style={styles.infoWrap}>
+            <Text numberOfLines={1} style={styles.title}>
+              Kinetic Structures
+            </Text>
+            <View style={styles.progressTrack}>
+              <View style={styles.progressFill} />
+            </View>
+          </View>
+
+          <View style={styles.controls}>
+            <TouchableOpacity activeOpacity={0.8} style={styles.iconControl}>
+              <MaterialIcons color="#6D5658" name="skip-previous" size={20} />
+            </TouchableOpacity>
+            <TouchableOpacity activeOpacity={0.8} style={styles.playButton}>
+              <MaterialIcons color="#6D5658" name="play-arrow" size={24} />
+            </TouchableOpacity>
+            <TouchableOpacity activeOpacity={0.8} style={styles.iconControl}>
+              <MaterialIcons color="#6D5658" name="skip-next" size={20} />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </View>
@@ -43,12 +45,23 @@ const styles = StyleSheet.create({
     bottom: 112,
     zIndex: 40,
   },
+  shell: {
+    borderRadius: 16,
+    backgroundColor: 'rgba(249, 245, 247, 0.92)',
+    borderWidth: 1,
+    borderColor: 'rgba(109, 86, 88, 0.15)',
+    shadowColor: '#A88589',
+    shadowOpacity: 0.24,
+    shadowRadius: 16,
+    shadowOffset: { width: 7, height: 9 },
+    elevation: 9,
+  },
   inner: {
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(109, 86, 88, 0.15)',
+    borderColor: 'rgba(255, 255, 255, 0.72)',
     backgroundColor: 'rgba(255, 255, 255, 0.80)',
     padding: 12,
   },
@@ -105,5 +118,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#F8D8DB',
+    borderWidth: 1,
+    borderColor: 'rgba(109, 86, 88, 0.10)',
   },
 });
