@@ -5,14 +5,24 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { BottomTabBar } from '../components/BottomTabBar';
 import { NeumorphicView } from '../components/NeumorphicView';
 import { TopAppBar } from '../components/TopAppBar';
+import { useSonara } from '../state/SonaraContext';
 
 interface NowPlayingScreenProps {
   onTabPress: (tab: 'home' | 'search' | 'library' | 'profile') => void;
 }
 
 export function NowPlayingScreen({ onTabPress }: NowPlayingScreenProps) {
+  const { currentArtist, currentTrack, currentTrackDurationSeconds, isPlaying, playNext, playPrevious, togglePlayback, trackProgress } = useSonara();
   const verticalLines = Array.from({ length: 12 });
   const horizontalLines = Array.from({ length: 28 });
+  const activeLyricIndex = React.useMemo(() => {
+    if (!currentTrack.lyrics.length || currentTrackDurationSeconds <= 0) {
+      return 0;
+    }
+
+    const ratio = trackProgress / currentTrackDurationSeconds;
+    return Math.min(currentTrack.lyrics.length - 1, Math.floor(ratio * currentTrack.lyrics.length));
+  }, [currentTrack.lyrics, currentTrackDurationSeconds, trackProgress]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -47,44 +57,44 @@ export function NowPlayingScreen({ onTabPress }: NowPlayingScreenProps) {
           </NeumorphicView>
 
           <View style={styles.trackInfo}>
-            <Text style={styles.trackTitle}>Architectural Silence</Text>
-            <Text style={styles.trackArtist}>The Drafting Table</Text>
+            <Text style={styles.trackTitle}>{currentTrack.title}</Text>
+            <Text style={styles.trackArtist}>{currentArtist.name}</Text>
           </View>
         </View>
 
         <View style={styles.progressSection}>
           <View style={styles.progressTrack}>
-            <View style={styles.progressFill} />
+            <View style={[styles.progressFill, { width: `${Math.max((trackProgress / Math.max(currentTrackDurationSeconds, 1)) * 100, 4)}%` }]} />
             <View style={styles.progressKnobOuter}>
               <View style={styles.progressKnobInner} />
             </View>
           </View>
           <View style={styles.timeRow}>
-            <Text style={styles.timeText}>02:14</Text>
-            <Text style={styles.timeText}>04:52</Text>
+            <Text style={styles.timeText}>{formatTime(trackProgress)}</Text>
+            <Text style={styles.timeText}>{formatTime(currentTrackDurationSeconds)}</Text>
           </View>
         </View>
 
         <View style={styles.controlsRow}>
-          <TouchableOpacity activeOpacity={0.85} style={styles.sideControl}>
+          <TouchableOpacity activeOpacity={0.85} onPress={playPrevious} style={styles.sideControl}>
             <MaterialIcons color="#604A4D" name="skip-previous" size={30} />
           </TouchableOpacity>
 
-          <TouchableOpacity activeOpacity={0.85} style={styles.mainControl}>
-            <MaterialIcons color="#6D5658" name="pause" size={38} />
+          <TouchableOpacity activeOpacity={0.85} onPress={togglePlayback} style={styles.mainControl}>
+            <MaterialIcons color="#6D5658" name={isPlaying ? 'pause' : 'play-arrow'} size={38} />
           </TouchableOpacity>
 
-          <TouchableOpacity activeOpacity={0.85} style={styles.sideControl}>
+          <TouchableOpacity activeOpacity={0.85} onPress={playNext} style={styles.sideControl}>
             <MaterialIcons color="#604A4D" name="skip-next" size={30} />
           </TouchableOpacity>
         </View>
 
         <NeumorphicView borderRadius={26} style={styles.lyricsCard} variant="outset">
-          <Text style={styles.lyricBlur}>Tracing the lines of a forgotten dream</Text>
+          <Text style={styles.lyricBlur}>{currentTrack.lyrics[Math.max(activeLyricIndex - 1, 0)]?.text ?? currentTrack.lyrics[0]?.text}</Text>
           <View style={styles.lyricFocusWrap}>
-            <Text style={styles.lyricFocus}>Measuring the echoes in the empty space</Text>
+            <Text style={styles.lyricFocus}>{currentTrack.lyrics[activeLyricIndex]?.text ?? currentTrack.lyrics[0]?.text}</Text>
           </View>
-          <Text style={styles.lyricBlur}>A blueprint of what we used to be</Text>
+          <Text style={styles.lyricBlur}>{currentTrack.lyrics[Math.min(activeLyricIndex + 1, currentTrack.lyrics.length - 1)]?.text ?? currentTrack.lyrics[currentTrack.lyrics.length - 1]?.text}</Text>
         </NeumorphicView>
 
         <View style={styles.artistSection}>
@@ -92,7 +102,7 @@ export function NowPlayingScreen({ onTabPress }: NowPlayingScreenProps) {
             <View style={styles.artistAvatarInner}>
               <Image
                 source={{
-                  uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAayWOnJqyJErnCaSWxnUSe08qEZF1l2YAAktIqH0UH-ZayZJmoLRfIocjw9QKSprrr7y8yCL8x8_0yBzirgXyfCpJvSjGVZqCsjzrT8UByaQtBfH06Ws2EjkD1zhFWm6Cvf_ypMuBHX36LcXhJj1jivEZQ3P0EfSKPdmMXmjMpjdqKSU3VrFyny7bouUE2nI_QmUODPWP_0lFRv4bsxawQtdFGqwkHQTavKq7NIMTvORnyteBDKvZM6DkVtdPNjCEmvsZTIt8A',
+                  uri: currentArtist.imageUri,
                 }}
                 style={styles.artistAvatarImg}
               />
@@ -107,7 +117,7 @@ export function NowPlayingScreen({ onTabPress }: NowPlayingScreenProps) {
               </TouchableOpacity>
             </View>
             <Text numberOfLines={2} style={styles.artistBio}>
-              Known for blending structural field recordings with neo-classical synth arrangements. "The Drafting Table" is a multi-sensory exploration of architectural decay.
+              {currentArtist.bio}
             </Text>
           </View>
         </View>
@@ -425,3 +435,13 @@ const styles = StyleSheet.create({
     color: '#5C5B5D',
   },
 });
+
+function formatTime(seconds: number) {
+  const safeSeconds = Math.max(0, Math.floor(seconds));
+  const minutes = Math.floor(safeSeconds / 60)
+    .toString()
+    .padStart(2, '0');
+  const remainder = (safeSeconds % 60).toString().padStart(2, '0');
+
+  return `${minutes}:${remainder}`;
+}

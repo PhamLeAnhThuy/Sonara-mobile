@@ -3,6 +3,7 @@ import { Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { BottomTabBar } from '../components/BottomTabBar';
+import { useSonara } from '../state/SonaraContext';
 
 interface PlaylistViewScreenProps {
   onTabPress: (tab: 'home' | 'search' | 'library' | 'profile') => void;
@@ -26,6 +27,20 @@ const tracks: Track[] = [
 ];
 
 export function PlaylistViewScreen({ onOpenNowPlaying, onTabPress }: PlaylistViewScreenProps) {
+  const { addTrackToPlaylist, currentArtist, currentTrack, currentUser, isPlaying, playNext, playPrevious, playTrack, removeTrackFromPlaylist, renamePlaylist, selectedPlaylist, togglePlayback, tracks } = useSonara();
+  const [playlistName, setPlaylistName] = React.useState(selectedPlaylist.name);
+  const [playlistDescription, setPlaylistDescription] = React.useState(selectedPlaylist.description);
+
+  React.useEffect(() => {
+    setPlaylistName(selectedPlaylist.name);
+    setPlaylistDescription(selectedPlaylist.description);
+  }, [selectedPlaylist.description, selectedPlaylist.name]);
+
+  const playlistTracks = selectedPlaylist.trackIds
+    .map(trackId => tracks.find(track => track.id === trackId))
+    .filter((track): track is (typeof tracks)[number] => Boolean(track));
+  const availableTracks = tracks.filter(track => !selectedPlaylist.trackIds.includes(track.id));
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.topBar}>
@@ -61,28 +76,32 @@ export function PlaylistViewScreen({ onOpenNowPlaying, onTabPress }: PlaylistVie
 
           <View style={styles.headerTextWrap}>
             <Text style={styles.headerType}>Playlist</Text>
-            <Text style={styles.headerTitle}>Pastel Drafts</Text>
-            <Text style={styles.headerDesc}>
-              Architectural soundscapes for deep focus. Linear progressions meet soft tonal transitions.
-            </Text>
+            <TextInput
+              onChangeText={setPlaylistName}
+              onBlur={() => renamePlaylist(selectedPlaylist.id, playlistName, playlistDescription)}
+              style={styles.headerTitleInput}
+              value={playlistName}
+            />
+            <TextInput
+              onChangeText={setPlaylistDescription}
+              onBlur={() => renamePlaylist(selectedPlaylist.id, playlistName, playlistDescription)}
+              multiline
+              style={styles.headerDescInput}
+              value={playlistDescription}
+            />
 
             <View style={styles.metaRow}>
               <View style={styles.curatorWrap}>
                 <View style={styles.curatorAvatar}>
-                  <Image
-                    source={{
-                      uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAfyfeF0Nh5-s4QtoO1iSbOiD0VLcgvqsXw-z_rB3SLon9zmZKeE2dfqWWCbvB_bGhCV__UAHyXfWcUUQ1mTYpoffYf7sJYvo3WXjB6RO_FTD8infdFiZ6ncA7x7fQm8Dxe0-ZBXPe6oGGVde4evOF4RbzKDpbGnu6FhRAUW4zAJt_1xZdi8rqFJiOUZkFdxfuGGmItNmUVD8u9yvvs53fvMMrgnNf_2NQslOutHbuQ_XjLY36e3Y_opnvBFmPEnK7RsmsIDP1w',
-                    }}
-                    style={styles.curatorAvatarImg}
-                  />
+                  <Image source={{ uri: currentUser?.avatarUri }} style={styles.curatorAvatarImg} />
                 </View>
-                <Text style={styles.curatorName}>CURATOR_01</Text>
+                <Text style={styles.curatorName}>{currentUser?.name ?? 'CURATOR_01'}</Text>
               </View>
 
               <Text style={styles.metaDot}>•</Text>
-              <Text style={styles.metaInfo}>12.5k Likes</Text>
+              <Text style={styles.metaInfo}>{selectedPlaylist.trackIds.length} Tracks</Text>
               <Text style={styles.metaDot}>•</Text>
-              <Text style={styles.metaInfo}>24 Tracks, 1h 42m</Text>
+              <Text style={styles.metaInfo}>{playlistTracks.length} Tracks loaded</Text>
             </View>
           </View>
         </View>
@@ -121,11 +140,14 @@ export function PlaylistViewScreen({ onOpenNowPlaying, onTabPress }: PlaylistVie
         </View>
 
         <View style={styles.trackList}>
-          {tracks.map((track, index) => (
+          {playlistTracks.map((track, index) => (
             <TouchableOpacity
               activeOpacity={0.85}
               key={track.id}
-              onPress={onOpenNowPlaying}
+              onPress={() => {
+                playTrack(track.id, selectedPlaylist.trackIds, selectedPlaylist.id);
+                onOpenNowPlaying();
+              }}
               style={[styles.trackRow, track.highlighted ? styles.trackRowActive : null]}
             >
               <Text style={styles.trackIndex}>{index + 1}</Text>
@@ -151,34 +173,52 @@ export function PlaylistViewScreen({ onOpenNowPlaying, onTabPress }: PlaylistVie
             </TouchableOpacity>
           ))}
         </View>
+
+        <View style={styles.editSection}>
+          <Text style={styles.editSectionTitle}>Add More Tracks</Text>
+          {availableTracks.map(track => (
+            <TouchableOpacity
+              activeOpacity={0.85}
+              key={track.id}
+              onPress={() => addTrackToPlaylist(selectedPlaylist.id, track.id)}
+              style={styles.availableTrackRow}
+            >
+              <View style={styles.availableInfo}>
+                <Text style={styles.availableTitle}>{track.title}</Text>
+                <Text style={styles.availableMeta}>{track.album}</Text>
+              </View>
+              <MaterialIcons color="#6D5658" name="add-circle-outline" size={20} />
+            </TouchableOpacity>
+          ))}
+        </View>
       </ScrollView>
 
       <View style={styles.miniPlayerWrap}>
         <View style={styles.miniPlayerCard}>
           <Image
             source={{
-              uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDuYG_KsJJuTId5-JhRDzff_P3PV3ptY-pdRfcNe-v-vrm6k77HqtuQOwtEBaoeU4S3BQtEatovOkL45Q3aerDa2JnC1FRXObDe-snfkmWSLSDOjGkFiaCP4FFF3KlA5ICYV6AEHjMjMT0farGhcs0u5FnysDueKD2CuYzpQzbRRJul6418AhEh_i8oTJHXXheO0huJR42fCgqsdO-ivGcuOgKfjuu28fTv982RD7j-95riaE-FuBmppUlkYby43EyFismSGlxt',
+              uri: currentTrack.artworkUri,
             }}
             style={styles.miniPlayerImage}
           />
 
           <View style={styles.miniPlayerInfo}>
             <Text numberOfLines={1} style={styles.miniPlayerTitle}>
-              Vellum Structures
+              {currentTrack.title}
             </Text>
             <Text numberOfLines={1} style={styles.miniPlayerSubtitle}>
-              Drafting Suite
+              {currentArtist.name}
             </Text>
           </View>
 
           <View style={styles.miniPlayerControls}>
-            <TouchableOpacity activeOpacity={0.8}>
+            <TouchableOpacity activeOpacity={0.8} onPress={playPrevious}>
               <MaterialIcons color="#6D5658" name="skip-previous" size={22} />
             </TouchableOpacity>
-            <TouchableOpacity activeOpacity={0.8} onPress={onOpenNowPlaying} style={styles.miniPlayerPlayBtn}>
-              <MaterialIcons color="#6D5658" name="play-arrow" size={20} />
+            <TouchableOpacity activeOpacity={0.8} onPress={() => { togglePlayback(); onOpenNowPlaying(); }} style={styles.miniPlayerPlayBtn}>
+              <MaterialIcons color="#6D5658" name={isPlaying ? 'pause' : 'play-arrow'} size={20} />
             </TouchableOpacity>
-            <TouchableOpacity activeOpacity={0.8}>
+            <TouchableOpacity activeOpacity={0.8} onPress={playNext}>
               <MaterialIcons color="#6D5658" name="skip-next" size={22} />
             </TouchableOpacity>
           </View>
@@ -304,11 +344,30 @@ const styles = StyleSheet.create({
     letterSpacing: -1,
     color: '#2F2E30',
   },
+  headerTitleInput: {
+    fontFamily: 'SpaceGrotesk-Variable',
+    fontSize: 40,
+    lineHeight: 46,
+    fontWeight: '700',
+    letterSpacing: -1,
+    color: '#2F2E30',
+    padding: 0,
+    marginVertical: 2,
+  },
   headerDesc: {
     fontFamily: 'Inter-Variable',
     fontSize: 14,
     lineHeight: 20,
     color: '#5C5B5D',
+    maxWidth: 560,
+  },
+  headerDescInput: {
+    fontFamily: 'Inter-Variable',
+    fontSize: 14,
+    lineHeight: 20,
+    color: '#5C5B5D',
+    minHeight: 54,
+    padding: 0,
     maxWidth: 560,
   },
   metaRow: {
@@ -505,6 +564,45 @@ const styles = StyleSheet.create({
   trackMoreBtn: {
     width: 24,
     alignItems: 'flex-end',
+  },
+  editSection: {
+    marginTop: 28,
+    gap: 10,
+  },
+  editSectionTitle: {
+    fontFamily: 'SpaceGrotesk-Variable',
+    fontSize: 14,
+    lineHeight: 18,
+    fontWeight: '700',
+    color: '#2F2E30',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  availableTrackRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 12,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.42)',
+  },
+  availableInfo: {
+    flex: 1,
+    minWidth: 0,
+  },
+  availableTitle: {
+    fontFamily: 'SpaceGrotesk-Variable',
+    fontSize: 14,
+    lineHeight: 18,
+    fontWeight: '700',
+    color: '#2F2E30',
+  },
+  availableMeta: {
+    marginTop: 2,
+    fontFamily: 'Inter-Variable',
+    fontSize: 12,
+    lineHeight: 16,
+    color: '#5C5B5D',
   },
   miniPlayerWrap: {
     position: 'absolute',
