@@ -6,6 +6,7 @@ import { BottomTabBar } from '../components/BottomTabBar';
 
 interface PlaylistViewScreenProps {
   onTabPress: (tab: 'home' | 'search' | 'library' | 'profile') => void;
+  onOpenNowPlaying: () => void;
 }
 
 type Track = {
@@ -24,7 +25,7 @@ const tracks: Track[] = [
   { id: '5', title: 'Elevation B', artist: 'Linear Path', duration: '4:01' },
 ];
 
-export function PlaylistViewScreen({ onTabPress }: PlaylistViewScreenProps) {
+export function PlaylistViewScreen({ onOpenNowPlaying, onTabPress }: PlaylistViewScreenProps) {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.topBar}>
@@ -87,7 +88,7 @@ export function PlaylistViewScreen({ onTabPress }: PlaylistViewScreenProps) {
         </View>
 
         <View style={styles.actionsSection}>
-          <TouchableOpacity activeOpacity={0.85} style={styles.playFab}>
+          <TouchableOpacity activeOpacity={0.85} onPress={onOpenNowPlaying} style={styles.playFab}>
             <MaterialIcons color="#6D5658" name="play-arrow" size={36} />
           </TouchableOpacity>
 
@@ -121,7 +122,12 @@ export function PlaylistViewScreen({ onTabPress }: PlaylistViewScreenProps) {
 
         <View style={styles.trackList}>
           {tracks.map((track, index) => (
-            <View key={track.id} style={[styles.trackRow, track.highlighted ? styles.trackRowActive : null]}>
+            <TouchableOpacity
+              activeOpacity={0.85}
+              key={track.id}
+              onPress={onOpenNowPlaying}
+              style={[styles.trackRow, track.highlighted ? styles.trackRowActive : null]}
+            >
               <Text style={styles.trackIndex}>{index + 1}</Text>
 
               <View style={styles.trackTitleWrap}>
@@ -142,7 +148,7 @@ export function PlaylistViewScreen({ onTabPress }: PlaylistViewScreenProps) {
               <TouchableOpacity activeOpacity={0.85} style={styles.trackMoreBtn}>
                 <MaterialIcons color="rgba(109, 86, 88, 0.35)" name="more-horiz" size={18} />
               </TouchableOpacity>
-            </View>
+            </TouchableOpacity>
           ))}
         </View>
       </ScrollView>
@@ -169,7 +175,7 @@ export function PlaylistViewScreen({ onTabPress }: PlaylistViewScreenProps) {
             <TouchableOpacity activeOpacity={0.8}>
               <MaterialIcons color="#6D5658" name="skip-previous" size={22} />
             </TouchableOpacity>
-            <TouchableOpacity activeOpacity={0.8} style={styles.miniPlayerPlayBtn}>
+            <TouchableOpacity activeOpacity={0.8} onPress={onOpenNowPlaying} style={styles.miniPlayerPlayBtn}>
               <MaterialIcons color="#6D5658" name="play-arrow" size={20} />
             </TouchableOpacity>
             <TouchableOpacity activeOpacity={0.8}>

@@ -3,12 +3,13 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { LibraryScreen } from './src/screens/LibraryScreen';
+import { NowPlayingScreen } from './src/screens/NowPlayingScreen';
 import { PlaylistViewScreen } from './src/screens/PlaylistViewScreen';
 import { SearchScreen } from './src/screens/SearchScreen';
 
 function App() {
   const [activeTab, setActiveTab] = React.useState<'home' | 'search' | 'library' | 'profile'>('home');
-  const [inPlaylistView, setInPlaylistView] = React.useState(false);
+  const [libraryView, setLibraryView] = React.useState<'library' | 'playlist' | 'now-playing'>('library');
 
   useEffect(() => {
     // Force-load icon font on startup so glyphs do not render as missing boxes.
@@ -20,7 +21,7 @@ function App() {
   const handleTabPress = (tab: 'home' | 'search' | 'library' | 'profile') => {
     setActiveTab(tab);
     if (tab !== 'library') {
-      setInPlaylistView(false);
+      setLibraryView('library');
     }
   };
 
@@ -30,11 +31,15 @@ function App() {
     }
 
     if (activeTab === 'library') {
-      if (inPlaylistView) {
-        return <PlaylistViewScreen onTabPress={handleTabPress} />;
+      if (libraryView === 'playlist') {
+        return <PlaylistViewScreen onOpenNowPlaying={() => setLibraryView('now-playing')} onTabPress={handleTabPress} />;
       }
 
-      return <LibraryScreen onOpenPlaylistView={() => setInPlaylistView(true)} onTabPress={handleTabPress} />;
+      if (libraryView === 'now-playing') {
+        return <NowPlayingScreen onTabPress={handleTabPress} />;
+      }
+
+      return <LibraryScreen onOpenPlaylistView={() => setLibraryView('playlist')} onTabPress={handleTabPress} />;
     }
 
     return <HomeScreen onTabPress={handleTabPress} />;
