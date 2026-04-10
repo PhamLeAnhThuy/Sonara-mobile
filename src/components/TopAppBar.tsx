@@ -1,18 +1,11 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { StyleSheet, Text, View } from 'react-native';
 
 export function TopAppBar() {
   return (
     <View style={styles.shell}>
       <View style={styles.container}>
-        <TouchableOpacity activeOpacity={0.8} style={styles.iconButton}>
-          <MaterialIcons color="#6D5658" name="grid-view" size={24} />
-        </TouchableOpacity>
         <Text style={styles.title}>SONARA</Text>
-        <TouchableOpacity activeOpacity={0.8} style={styles.iconButton}>
-          <MaterialIcons color="#6D5658" name="settings" size={24} />
-        </TouchableOpacity>
       </View>
     </View>
   );
@@ -35,20 +28,13 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   container: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 24,
+    justifyContent: 'center',
+    paddingHorizontal: 16,
     paddingVertical: 16,
     backgroundColor: '#F9F5F7',
     borderTopWidth: 1,
     borderTopColor: 'rgba(255, 255, 255, 0.75)',
-  },
-  iconButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   title: {
     fontFamily: 'SpaceGrotesk-Variable',

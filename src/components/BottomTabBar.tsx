@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { triggerMajorHaptic } from '../theme/motion';
 
 interface BottomTabBarProps {
   activeTab: 'home' | 'search' | 'library' | 'profile';
@@ -13,7 +14,10 @@ export function BottomTabBar({ activeTab, onTabPress }: BottomTabBarProps) {
       <View style={styles.container}>
         <TouchableOpacity
           activeOpacity={0.9}
-          onPress={() => onTabPress('home')}
+          onPress={() => {
+            triggerMajorHaptic();
+            onTabPress('home');
+          }}
           style={[styles.tab, activeTab === 'home' ? styles.tabActive : null]}
         >
           <MaterialIcons color={activeTab === 'home' ? '#6D5658' : 'rgba(109, 86, 88, 0.50)'} name="home" size={24} />
@@ -22,7 +26,10 @@ export function BottomTabBar({ activeTab, onTabPress }: BottomTabBarProps) {
 
         <TouchableOpacity
           activeOpacity={0.9}
-          onPress={() => onTabPress('search')}
+          onPress={() => {
+            triggerMajorHaptic();
+            onTabPress('search');
+          }}
           style={[styles.tab, activeTab === 'search' ? styles.tabActive : null]}
         >
           <MaterialIcons color={activeTab === 'search' ? '#6D5658' : 'rgba(109, 86, 88, 0.50)'} name="search" size={24} />
@@ -31,7 +38,10 @@ export function BottomTabBar({ activeTab, onTabPress }: BottomTabBarProps) {
 
         <TouchableOpacity
           activeOpacity={0.9}
-          onPress={() => onTabPress('library')}
+          onPress={() => {
+            triggerMajorHaptic();
+            onTabPress('library');
+          }}
           style={[styles.tab, activeTab === 'library' ? styles.tabActive : null]}
         >
           <MaterialIcons color={activeTab === 'library' ? '#6D5658' : 'rgba(109, 86, 88, 0.50)'} name="library-music" size={24} />
@@ -40,7 +50,10 @@ export function BottomTabBar({ activeTab, onTabPress }: BottomTabBarProps) {
 
         <TouchableOpacity
           activeOpacity={0.9}
-          onPress={() => onTabPress('profile')}
+          onPress={() => {
+            triggerMajorHaptic();
+            onTabPress('profile');
+          }}
           style={[styles.tab, activeTab === 'profile' ? styles.tabActive : null]}
         >
           <MaterialIcons color={activeTab === 'profile' ? '#6D5658' : 'rgba(109, 86, 88, 0.50)'} name="person" size={24} />

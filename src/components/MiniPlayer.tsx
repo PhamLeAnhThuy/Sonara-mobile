@@ -2,9 +2,10 @@ import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useSonara } from '../state/SonaraContext';
+import { triggerMajorHaptic } from '../theme/motion';
 
 export function MiniPlayer() {
-  const { currentArtist, currentTrack, currentTrackDurationSeconds, isPlaying, playNext, playPrevious, togglePlayback, trackProgress } = useSonara();
+  const { currentTrack, currentTrackDurationSeconds, isPlaying, playNext, playPrevious, togglePlayback, trackProgress } = useSonara();
 
   const progressPercent = currentTrackDurationSeconds > 0 ? Math.min(trackProgress / currentTrackDurationSeconds, 1) * 100 : 0;
 
@@ -26,20 +27,38 @@ export function MiniPlayer() {
           </View>
 
           <View style={styles.controls}>
-            <TouchableOpacity activeOpacity={0.8} onPress={playPrevious} style={styles.iconControl}>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => {
+                triggerMajorHaptic();
+                playPrevious();
+              }}
+              style={styles.iconControl}
+            >
               <MaterialIcons color="#6D5658" name="skip-previous" size={20} />
             </TouchableOpacity>
-            <TouchableOpacity activeOpacity={0.8} onPress={togglePlayback} style={styles.playButton}>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => {
+                triggerMajorHaptic();
+                togglePlayback();
+              }}
+              style={styles.playButton}
+            >
               <MaterialIcons color="#6D5658" name={isPlaying ? 'pause' : 'play-arrow'} size={24} />
             </TouchableOpacity>
-            <TouchableOpacity activeOpacity={0.8} onPress={playNext} style={styles.iconControl}>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => {
+                triggerMajorHaptic();
+                playNext();
+              }}
+              style={styles.iconControl}
+            >
               <MaterialIcons color="#6D5658" name="skip-next" size={20} />
             </TouchableOpacity>
           </View>
         </View>
-        <Text numberOfLines={1} style={styles.subtitle}>
-          {currentArtist.name}
-        </Text>
       </View>
     </View>
   );
@@ -94,16 +113,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 18,
     color: '#6D5658',
-  },
-  subtitle: {
-    marginTop: 6,
-    marginLeft: 64,
-    fontFamily: 'SpaceGrotesk-Variable',
-    fontSize: 9,
-    lineHeight: 12,
-    color: 'rgba(92, 91, 93, 0.70)',
-    textTransform: 'uppercase',
-    letterSpacing: 1.1,
   },
   progressTrack: {
     marginTop: 8,
