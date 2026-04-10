@@ -1,10 +1,11 @@
 import React from 'react';
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { BottomTabBar } from '../components/BottomTabBar';
 import { MiniPlayer } from '../components/MiniPlayer';
 import { NeumorphicView } from '../components/NeumorphicView';
+import { SOFT_REVEAL, SONARA_SPRING, triggerMajorHaptic } from '../theme/motion';
 import { TopAppBar } from '../components/TopAppBar';
 import { useSonara } from '../state/SonaraContext';
 
@@ -24,19 +25,12 @@ const recentListening = [
   { id: '2', title: 'Axis Alignment', subtitle: 'Isometric Theory', time: '02:54', icon: 'square-foot' },
 ];
 
-const archived = [
-  { id: '1', label: 'Acoustic', symbol: 'AE', icon: null },
-  { id: '2', label: 'Trinity', symbol: '', icon: 'change-history' },
-  { id: '3', label: 'Linear', symbol: 'LS', icon: null },
-  { id: '4', label: 'Radial', symbol: '', icon: 'radio-button-checked' },
-];
-
 interface HomeScreenProps {
   onTabPress: (tab: 'home' | 'search' | 'library' | 'profile') => void;
 }
 
 export function HomeScreen({ onTabPress }: HomeScreenProps) {
-  const { artists, playTrack, tracks } = useSonara();
+  const { artists, currentTrack, playTrack, tracks } = useSonara();
   const verticalLines = Array.from({ length: 12 });
   const horizontalLines = Array.from({ length: 28 });
   const trackByTitle = React.useMemo(() => new Map(tracks.map(track => [track.title, track] as const)), [tracks]);
@@ -44,6 +38,40 @@ export function HomeScreen({ onTabPress }: HomeScreenProps) {
   const trendingItems = trending.map(item => ({ ...item, track: trackByTitle.get(item.title) }));
   const recentItems = recentListening.map(item => ({ ...item, track: trackByTitle.get(item.title) }));
   const favouriteArtistItems = artists.filter(artist => tracks.some(track => track.artistId === artist.id && track.favouriteArtist));
+  const sectionReveal = React.useRef([
+    new Animated.Value(0),
+    new Animated.Value(0),
+    new Animated.Value(0),
+    new Animated.Value(0),
+  ]).current;
+  const activePulse = React.useRef(new Animated.Value(0)).current;
+
+  React.useEffect(() => {
+    Animated.stagger(
+      90,
+      sectionReveal.map(value =>
+        Animated.timing(value, {
+          toValue: 1,
+          ...SOFT_REVEAL,
+        }),
+      ),
+    ).start();
+  }, [sectionReveal]);
+
+  React.useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.spring(activePulse, {
+          toValue: 1,
+          ...SONARA_SPRING,
+        }),
+        Animated.spring(activePulse, {
+          toValue: 0,
+          ...SONARA_SPRING,
+        }),
+      ]),
+    ).start();
+  }, [activePulse]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -66,13 +94,28 @@ export function HomeScreen({ onTabPress }: HomeScreenProps) {
         showsVerticalScrollIndicator={false}
         style={styles.scrollView}
       >
-        <View style={styles.section}>
+        <Animated.View
+          style={[
+            styles.section,
+            {
+              opacity: sectionReveal[0],
+              transform: [
+                {
+                  translateY: sectionReveal[0].interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [16, 0],
+                  }),
+                },
+              ],
+            },
+          ]}
+        >
           <View style={styles.sectionHeader}>
             <View>
               <Text style={styles.sectionPreTitle}>For You</Text>
               <Text style={styles.sectionTitle}>Recommended</Text>
             </View>
-            <Text style={styles.sectionRef}>REF-092</Text>
+            <Text style={styles.sectionRef}>view more</Text>
           </View>
 
           <ScrollView
@@ -80,12 +123,21 @@ export function HomeScreen({ onTabPress }: HomeScreenProps) {
             horizontal
             showsHorizontalScrollIndicator={false}
             style={styles.recommendedScroll}
+            decelerationRate="fast"
+            disableIntervalMomentum={false}
           >
             {recommendedItems.map((item, index) => (
               <TouchableOpacity
                 activeOpacity={0.9}
                 key={item.id}
-                onPress={() => item.track && playTrack(item.track.id, recommendedItems.map(entry => entry.track?.id).filter(Boolean) as string[])}
+                onPress={() => {
+                  if (!item.track) {
+                    return;
+                  }
+
+                  triggerMajorHaptic();
+                  playTrack(item.track.id, recommendedItems.map(entry => entry.track?.id).filter(Boolean) as string[]);
+                }}
                 style={[styles.card, index === recommendedItems.length - 1 ? styles.cardLast : null]}
               >
                 <NeumorphicView borderRadius={32} style={styles.cardShell} variant="outset">
@@ -110,23 +162,52 @@ export function HomeScreen({ onTabPress }: HomeScreenProps) {
               </TouchableOpacity>
             ))}
           </ScrollView>
-        </View>
+        </Animated.View>
 
-        <View style={styles.section}>
+        <Animated.View
+          style={[
+            styles.section,
+            {
+              opacity: sectionReveal[1],
+              transform: [
+                {
+                  translateY: sectionReveal[1].interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [16, 0],
+                  }),
+                },
+              ],
+            },
+          ]}
+        >
           <View style={styles.sectionHeader}>
             <View>
               <Text style={styles.sectionPreTitle}>Discover</Text>
               <Text style={styles.sectionTitle}>Trending</Text>
             </View>
-            <Text style={styles.sectionRef}>REF-105</Text>
+            <Text style={styles.sectionRef}>view more</Text>
           </View>
 
-          <View style={styles.trendingList}>
+          <ScrollView
+            contentContainerStyle={styles.trendingRow}
+            decelerationRate="fast"
+            disableIntervalMomentum={false}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.trendingScroll}
+          >
             {trendingItems.map(item => (
               <TouchableOpacity
                 activeOpacity={0.85}
                 key={item.id}
-                onPress={() => item.track && playTrack(item.track.id, trendingItems.map(entry => entry.track?.id).filter(Boolean) as string[])}
+                onPress={() => {
+                  if (!item.track) {
+                    return;
+                  }
+
+                  triggerMajorHaptic();
+                  playTrack(item.track.id, trendingItems.map(entry => entry.track?.id).filter(Boolean) as string[]);
+                }}
                 style={styles.trendingItem}
               >
                 <NeumorphicView borderRadius={12} style={styles.trendingIconWrap} variant="inset">
@@ -142,10 +223,25 @@ export function HomeScreen({ onTabPress }: HomeScreenProps) {
                 </View>
               </TouchableOpacity>
             ))}
-          </View>
-        </View>
+          </ScrollView>
+        </Animated.View>
 
-        <View style={styles.section}>
+        <Animated.View
+          style={[
+            styles.section,
+            {
+              opacity: sectionReveal[2],
+              transform: [
+                {
+                  translateY: sectionReveal[2].interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [16, 0],
+                  }),
+                },
+              ],
+            },
+          ]}
+        >
           <View style={styles.sectionHeader}>
             <View>
               <Text style={styles.sectionPreTitle}>History</Text>
@@ -156,12 +252,36 @@ export function HomeScreen({ onTabPress }: HomeScreenProps) {
 
           <View style={styles.trendingList}>
             {recentItems.map(item => (
-              <TouchableOpacity
-                activeOpacity={0.85}
+              <Animated.View
                 key={item.id}
-                onPress={() => item.track && playTrack(item.track.id, recentItems.map(entry => entry.track?.id).filter(Boolean) as string[])}
-                style={styles.trendingItem}
+                style={[
+                  styles.trendingItem,
+                  item.track?.id === currentTrack.id
+                    ? {
+                        shadowOpacity: activePulse.interpolate({ inputRange: [0, 1], outputRange: [0.18, 0.35] }),
+                        shadowRadius: activePulse.interpolate({ inputRange: [0, 1], outputRange: [8, 16] }),
+                        shadowColor: '#A88589',
+                        transform: [
+                          {
+                            scale: activePulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.015] }),
+                          },
+                        ],
+                      }
+                    : null,
+                ]}
               >
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  onPress={() => {
+                    if (!item.track) {
+                      return;
+                    }
+
+                    triggerMajorHaptic();
+                    playTrack(item.track.id, recentItems.map(entry => entry.track?.id).filter(Boolean) as string[]);
+                  }}
+                  style={styles.recentTouch}
+                >
                 <NeumorphicView borderRadius={12} style={styles.trendingIconWrap} variant="inset">
                   <MaterialIcons color="rgba(109, 86, 88, 0.40)" name={item.icon} size={22} />
                 </NeumorphicView>
@@ -173,18 +293,34 @@ export function HomeScreen({ onTabPress }: HomeScreenProps) {
                   <Text style={styles.trendingTime}>{item.time}</Text>
                   <MaterialIcons color="#6D5658" name="play-circle" size={26} />
                 </View>
-              </TouchableOpacity>
+                </TouchableOpacity>
+              </Animated.View>
             ))}
           </View>
-        </View>
+        </Animated.View>
 
-        <View style={styles.sectionLast}>
+        <Animated.View
+          style={[
+            styles.sectionLast,
+            {
+              opacity: sectionReveal[3],
+              transform: [
+                {
+                  translateY: sectionReveal[3].interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [16, 0],
+                  }),
+                },
+              ],
+            },
+          ]}
+        >
           <View style={styles.sectionHeader}>
             <View>
               <Text style={styles.sectionPreTitle}>Artists</Text>
               <Text style={styles.sectionTitle}>Favourite Artists</Text>
             </View>
-            <Text style={styles.sectionRef}>REF-006</Text>
+            <Text style={styles.sectionRef}>view more</Text>
           </View>
 
           <ScrollView contentContainerStyle={styles.archivedRow} horizontal showsHorizontalScrollIndicator={false}>
@@ -197,7 +333,7 @@ export function HomeScreen({ onTabPress }: HomeScreenProps) {
               </View>
             ))}
           </ScrollView>
-        </View>
+        </Animated.View>
       </ScrollView>
 
       <MiniPlayer />
@@ -255,7 +391,7 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   scrollContent: {
-    paddingTop: 96,
+    paddingTop: 56,
     paddingBottom: 208,
   },
   section: {
@@ -414,6 +550,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     gap: 16,
   },
+  trendingScroll: {
+    marginHorizontal: -24,
+  },
+  trendingRow: {
+    paddingHorizontal: 24,
+    gap: 16,
+  },
   trendingItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -423,6 +566,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.35)',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.55)',
+    minWidth: 280,
+  },
+  recentTouch: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    flex: 1,
   },
   trendingIconWrap: {
     width: 56,

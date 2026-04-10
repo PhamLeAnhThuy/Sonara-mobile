@@ -1,11 +1,12 @@
 import React from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Animated, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { BottomTabBar } from '../components/BottomTabBar';
 import { MiniPlayer } from '../components/MiniPlayer';
 import { NeumorphicView } from '../components/NeumorphicView';
 import { TopAppBar } from '../components/TopAppBar';
+import { SOFT_REVEAL, SONARA_SPRING, triggerMajorHaptic } from '../theme/motion';
 import { useSonara } from '../state/SonaraContext';
 
 interface SearchScreenProps {
@@ -26,8 +27,12 @@ const genres = [
 export function SearchScreen({ onTabPress }: SearchScreenProps) {
   const { artists, playTrack, tracks } = useSonara();
   const [query, setQuery] = React.useState('');
+  const [rippleMeta, setRippleMeta] = React.useState({ x: 0, y: 0, index: -1 });
   const verticalLines = Array.from({ length: 12 });
   const horizontalLines = Array.from({ length: 28 });
+  const genreDepth = React.useRef(genres.map(() => new Animated.Value(0))).current;
+  const rippleScale = React.useRef(new Animated.Value(0)).current;
+  const rippleOpacity = React.useRef(new Animated.Value(0)).current;
   const normalizedQuery = query.trim().toLowerCase();
   const trackResults = normalizedQuery
     ? tracks.filter(track => [track.title, track.album, track.tags.join(' '), track.artistId]
@@ -38,6 +43,31 @@ export function SearchScreen({ onTabPress }: SearchScreenProps) {
   const artistResults = normalizedQuery
     ? artists.filter(artist => [artist.name, artist.genre, artist.bio].join(' ').toLowerCase().includes(normalizedQuery))
     : artists.slice(0, 4);
+
+  const animateGenreDepth = React.useCallback((originIndex: number) => {
+    Animated.parallel(
+      genreDepth.map((value, index) => {
+        const distance = Math.abs(index - originIndex);
+        const toValue = distance === 0 ? 1 : distance === 1 ? 0.55 : distance === 2 ? 0.2 : 0;
+
+        return Animated.spring(value, {
+          toValue,
+          ...SONARA_SPRING,
+        });
+      }),
+    ).start();
+  }, [genreDepth]);
+
+  const resetGenreDepth = React.useCallback(() => {
+    Animated.parallel(
+      genreDepth.map(value =>
+        Animated.timing(value, {
+          toValue: 0,
+          ...SOFT_REVEAL,
+        }),
+      ),
+    ).start();
+  }, [genreDepth]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -82,15 +112,77 @@ export function SearchScreen({ onTabPress }: SearchScreenProps) {
           <Text style={styles.sectionLabel}>Browse All</Text>
 
           <View style={styles.genreGrid}>
-            {genres.map(item => (
-              <TouchableOpacity activeOpacity={0.9} key={item.id} style={styles.genreCell}>
+            {genres.map((item, index) => (
+              <Animated.View
+                key={item.id}
+                style={[
+                  styles.genreCell,
+                  {
+                    transform: [
+                      {
+                        scale: genreDepth[index].interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [1, 1.03],
+                        }),
+                      },
+                    ],
+                  },
+                ]}
+              >
+              <TouchableOpacity
+                activeOpacity={0.9}
+                style={styles.genreCellTouch}
+                onPressIn={event => {
+                  const { locationX, locationY } = event.nativeEvent;
+
+                  setRippleMeta({ x: locationX, y: locationY, index });
+                  rippleScale.setValue(0);
+                  rippleOpacity.setValue(0.28);
+                  triggerMajorHaptic();
+                  animateGenreDepth(index);
+
+                  Animated.parallel([
+                    Animated.spring(rippleScale, {
+                      toValue: 1,
+                      ...SONARA_SPRING,
+                    }),
+                    Animated.timing(rippleOpacity, {
+                      toValue: 0,
+                      ...SOFT_REVEAL,
+                    }),
+                  ]).start();
+                }}
+                onPressOut={resetGenreDepth}
+              >
                 <NeumorphicView borderRadius={16} style={styles.genreCard} variant="outset">
+                  {rippleMeta.index === index ? (
+                    <Animated.View
+                      pointerEvents="none"
+                      style={[
+                        styles.genreRipple,
+                        {
+                          top: rippleMeta.y - 14,
+                          left: rippleMeta.x - 14,
+                          opacity: rippleOpacity,
+                          transform: [
+                            {
+                              scale: rippleScale.interpolate({
+                                inputRange: [0, 1],
+                                outputRange: [0.2, 8],
+                              }),
+                            },
+                          ],
+                        },
+                      ]}
+                    />
+                  ) : null}
                   <Text style={styles.genreTitle}>{item.title}</Text>
                   <View style={styles.genreIconWrap}>
                     <MaterialIcons color="rgba(109, 86, 88, 0.20)" name={item.icon} size={56} />
                   </View>
                 </NeumorphicView>
               </TouchableOpacity>
+              </Animated.View>
             ))}
           </View>
         </View>
@@ -197,7 +289,7 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   scrollContent: {
-    paddingTop: 96,
+    paddingTop: 56,
     paddingBottom: 208,
   },
   headerWrap: {
@@ -271,6 +363,9 @@ const styles = StyleSheet.create({
   genreCell: {
     width: '48.3%',
   },
+  genreCellTouch: {
+    width: '100%',
+  },
   genreCard: {
     aspectRatio: 1.5,
     borderRadius: 16,
@@ -278,6 +373,14 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     justifyContent: 'space-between',
     backgroundColor: '#F9F5F7',
+    overflow: 'hidden',
+  },
+  genreRipple: {
+    position: 'absolute',
+    width: 28,
+    height: 28,
+    borderRadius: 999,
+    backgroundColor: 'rgba(248, 216, 219, 0.75)',
   },
   genreTitle: {
     fontFamily: 'SpaceGrotesk-Variable',

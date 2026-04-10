@@ -1,9 +1,10 @@
 import React from 'react';
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { BottomTabBar } from '../components/BottomTabBar';
 import { NeumorphicView } from '../components/NeumorphicView';
+import { SOFT_REVEAL, SONARA_SPRING, triggerMajorHaptic } from '../theme/motion';
 import { TopAppBar } from '../components/TopAppBar';
 import { useSonara } from '../state/SonaraContext';
 
@@ -15,6 +16,8 @@ export function NowPlayingScreen({ onTabPress }: NowPlayingScreenProps) {
   const { currentArtist, currentTrack, currentTrackDurationSeconds, isPlaying, playNext, playPrevious, togglePlayback, trackProgress } = useSonara();
   const verticalLines = Array.from({ length: 12 });
   const horizontalLines = Array.from({ length: 28 });
+  const breatheValue = React.useRef(new Animated.Value(0)).current;
+  const lyricFocus = React.useRef(new Animated.Value(1)).current;
   const activeLyricIndex = React.useMemo(() => {
     if (!currentTrack.lyrics.length || currentTrackDurationSeconds <= 0) {
       return 0;
@@ -23,6 +26,29 @@ export function NowPlayingScreen({ onTabPress }: NowPlayingScreenProps) {
     const ratio = trackProgress / currentTrackDurationSeconds;
     return Math.min(currentTrack.lyrics.length - 1, Math.floor(ratio * currentTrack.lyrics.length));
   }, [currentTrack.lyrics, currentTrackDurationSeconds, trackProgress]);
+
+  React.useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.spring(breatheValue, {
+          toValue: 1,
+          ...SONARA_SPRING,
+        }),
+        Animated.spring(breatheValue, {
+          toValue: 0,
+          ...SONARA_SPRING,
+        }),
+      ]),
+    ).start();
+  }, [breatheValue]);
+
+  React.useEffect(() => {
+    lyricFocus.setValue(0);
+    Animated.timing(lyricFocus, {
+      toValue: 1,
+      ...SOFT_REVEAL,
+    }).start();
+  }, [activeLyricIndex, lyricFocus]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -39,6 +65,18 @@ export function NowPlayingScreen({ onTabPress }: NowPlayingScreenProps) {
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.centerSection}>
+          <Animated.View
+            style={{
+              transform: [
+                {
+                  scale: breatheValue.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [1, 1.03],
+                  }),
+                },
+              ],
+            }}
+          >
           <NeumorphicView borderRadius={48} style={styles.artShell} variant="outset">
             <Text style={styles.refId}>REF-001/AUD</Text>
 
@@ -55,6 +93,7 @@ export function NowPlayingScreen({ onTabPress }: NowPlayingScreenProps) {
               <View style={styles.waveLineShort} />
             </View>
           </NeumorphicView>
+          </Animated.View>
 
           <View style={styles.trackInfo}>
             <Text style={styles.trackTitle}>{currentTrack.title}</Text>
@@ -76,15 +115,36 @@ export function NowPlayingScreen({ onTabPress }: NowPlayingScreenProps) {
         </View>
 
         <View style={styles.controlsRow}>
-          <TouchableOpacity activeOpacity={0.85} onPress={playPrevious} style={styles.sideControl}>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={() => {
+              triggerMajorHaptic();
+              playPrevious();
+            }}
+            style={styles.sideControl}
+          >
             <MaterialIcons color="#604A4D" name="skip-previous" size={30} />
           </TouchableOpacity>
 
-          <TouchableOpacity activeOpacity={0.85} onPress={togglePlayback} style={styles.mainControl}>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={() => {
+              triggerMajorHaptic();
+              togglePlayback();
+            }}
+            style={styles.mainControl}
+          >
             <MaterialIcons color="#6D5658" name={isPlaying ? 'pause' : 'play-arrow'} size={38} />
           </TouchableOpacity>
 
-          <TouchableOpacity activeOpacity={0.85} onPress={playNext} style={styles.sideControl}>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={() => {
+              triggerMajorHaptic();
+              playNext();
+            }}
+            style={styles.sideControl}
+          >
             <MaterialIcons color="#604A4D" name="skip-next" size={30} />
           </TouchableOpacity>
         </View>
@@ -92,7 +152,27 @@ export function NowPlayingScreen({ onTabPress }: NowPlayingScreenProps) {
         <NeumorphicView borderRadius={26} style={styles.lyricsCard} variant="outset">
           <Text style={styles.lyricBlur}>{currentTrack.lyrics[Math.max(activeLyricIndex - 1, 0)]?.text ?? currentTrack.lyrics[0]?.text}</Text>
           <View style={styles.lyricFocusWrap}>
-            <Text style={styles.lyricFocus}>{currentTrack.lyrics[activeLyricIndex]?.text ?? currentTrack.lyrics[0]?.text}</Text>
+            <Animated.Text
+              style={[
+                styles.lyricFocus,
+                {
+                  opacity: lyricFocus,
+                  transform: [
+                    {
+                      scale: lyricFocus.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [1.05, 1],
+                      }),
+                    },
+                  ],
+                  textShadowColor: 'rgba(109, 86, 88, 0.35)',
+                  textShadowOffset: { width: 0, height: 0 },
+                  textShadowRadius: 2,
+                },
+              ]}
+            >
+              {currentTrack.lyrics[activeLyricIndex]?.text ?? currentTrack.lyrics[0]?.text}
+            </Animated.Text>
           </View>
           <Text style={styles.lyricBlur}>{currentTrack.lyrics[Math.min(activeLyricIndex + 1, currentTrack.lyrics.length - 1)]?.text ?? currentTrack.lyrics[currentTrack.lyrics.length - 1]?.text}</Text>
         </NeumorphicView>
@@ -112,7 +192,10 @@ export function NowPlayingScreen({ onTabPress }: NowPlayingScreenProps) {
           <View style={styles.artistInfo}>
             <View style={styles.artistHeaderRow}>
               <Text style={styles.artistLabel}>ABOUT ARTIST</Text>
-              <TouchableOpacity activeOpacity={0.8}>
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={triggerMajorHaptic}
+              >
                 <Text style={styles.followText}>FOLLOW</Text>
               </TouchableOpacity>
             </View>
@@ -152,7 +235,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(109, 86, 88, 0.05)',
   },
   scrollContent: {
-    paddingTop: 96,
+    paddingTop: 56,
     paddingBottom: 150,
     paddingHorizontal: 24,
   },
