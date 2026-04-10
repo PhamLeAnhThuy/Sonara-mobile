@@ -30,7 +30,11 @@ const archived = [
   { id: '4', label: 'Radial', symbol: '', icon: 'radio-button-checked' },
 ];
 
-export function HomeScreen() {
+interface HomeScreenProps {
+  onTabPress: (tab: 'home' | 'search' | 'library' | 'profile') => void;
+}
+
+export function HomeScreen({ onTabPress }: HomeScreenProps) {
   const verticalLines = Array.from({ length: 12 });
   const horizontalLines = Array.from({ length: 28 });
 
@@ -179,7 +183,7 @@ export function HomeScreen() {
       </ScrollView>
 
       <MiniPlayer />
-      <BottomTabBar activeTab="home" />
+      <BottomTabBar activeTab="home" onTabPress={onTabPress} />
     </SafeAreaView>
   );
 }

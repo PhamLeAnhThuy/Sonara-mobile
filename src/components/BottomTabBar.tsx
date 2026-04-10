@@ -4,30 +4,47 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 interface BottomTabBarProps {
   activeTab: 'home' | 'search' | 'library' | 'profile';
+  onTabPress: (tab: 'home' | 'search' | 'library' | 'profile') => void;
 }
 
-export function BottomTabBar({ activeTab }: BottomTabBarProps) {
+export function BottomTabBar({ activeTab, onTabPress }: BottomTabBarProps) {
   return (
     <View style={styles.shell}>
       <View style={styles.container}>
-        <TouchableOpacity activeOpacity={0.9} style={[styles.tab, activeTab === 'home' ? styles.tabActive : null]}>
+        <TouchableOpacity
+          activeOpacity={0.9}
+          onPress={() => onTabPress('home')}
+          style={[styles.tab, activeTab === 'home' ? styles.tabActive : null]}
+        >
           <MaterialIcons color={activeTab === 'home' ? '#6D5658' : 'rgba(109, 86, 88, 0.50)'} name="home" size={24} />
           <Text style={[styles.tabLabel, activeTab === 'home' ? styles.tabLabelActive : null]}>HOME</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity activeOpacity={0.9} style={styles.tab}>
-          <MaterialIcons color="rgba(109, 86, 88, 0.50)" name="search" size={24} />
-          <Text style={styles.tabLabel}>SEARCH</Text>
+        <TouchableOpacity
+          activeOpacity={0.9}
+          onPress={() => onTabPress('search')}
+          style={[styles.tab, activeTab === 'search' ? styles.tabActive : null]}
+        >
+          <MaterialIcons color={activeTab === 'search' ? '#6D5658' : 'rgba(109, 86, 88, 0.50)'} name="search" size={24} />
+          <Text style={[styles.tabLabel, activeTab === 'search' ? styles.tabLabelActive : null]}>SEARCH</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity activeOpacity={0.9} style={styles.tab}>
-          <MaterialIcons color="rgba(109, 86, 88, 0.50)" name="library-music" size={24} />
-          <Text style={styles.tabLabel}>LIBRARY</Text>
+        <TouchableOpacity
+          activeOpacity={0.9}
+          onPress={() => onTabPress('library')}
+          style={[styles.tab, activeTab === 'library' ? styles.tabActive : null]}
+        >
+          <MaterialIcons color={activeTab === 'library' ? '#6D5658' : 'rgba(109, 86, 88, 0.50)'} name="library-music" size={24} />
+          <Text style={[styles.tabLabel, activeTab === 'library' ? styles.tabLabelActive : null]}>LIBRARY</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity activeOpacity={0.9} style={styles.tab}>
-          <MaterialIcons color="rgba(109, 86, 88, 0.50)" name="person" size={24} />
-          <Text style={styles.tabLabel}>PROFILE</Text>
+        <TouchableOpacity
+          activeOpacity={0.9}
+          onPress={() => onTabPress('profile')}
+          style={[styles.tab, activeTab === 'profile' ? styles.tabActive : null]}
+        >
+          <MaterialIcons color={activeTab === 'profile' ? '#6D5658' : 'rgba(109, 86, 88, 0.50)'} name="person" size={24} />
+          <Text style={[styles.tabLabel, activeTab === 'profile' ? styles.tabLabelActive : null]}>PROFILE</Text>
         </TouchableOpacity>
       </View>
     </View>
