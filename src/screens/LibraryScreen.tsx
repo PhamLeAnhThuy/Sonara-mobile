@@ -1,22 +1,23 @@
 import React from 'react';
-import { Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { BottomTabBar } from '../components/BottomTabBar';
+import { DepthShiftPressable } from '../components/DepthShiftPressable';
 import { TopAppBar } from '../components/TopAppBar';
 import { useSonara } from '../state/SonaraContext';
+import { triggerMajorHaptic } from '../theme/motion';
 
 interface LibraryScreenProps {
   onTabPress: (tab: 'home' | 'search' | 'library' | 'profile') => void;
   onOpenPlaylistView: (playlistId: string) => void;
 }
 
-const chips = ['Playlists', 'Artists', 'Albums', 'Downloads'];
-
 export function LibraryScreen({ onOpenPlaylistView, onTabPress }: LibraryScreenProps) {
-  const { createPlaylist, currentArtist, currentTrack, isPlaying, playlists, playNext, playPrevious, selectPlaylist, togglePlayback, tracks } = useSonara();
+  const { createPlaylist, currentArtist, currentTrack, isPlaying, playlists, playNext, playPrevious, selectPlaylist, togglePlayback } = useSonara();
   const [newPlaylistName, setNewPlaylistName] = React.useState('');
   const [newPlaylistDescription, setNewPlaylistDescription] = React.useState('');
+  const [createModalVisible, setCreateModalVisible] = React.useState(false);
   const verticalLines = Array.from({ length: 12 });
   const horizontalLines = Array.from({ length: 28 });
 
@@ -34,26 +35,10 @@ export function LibraryScreen({ onOpenPlaylistView, onTabPress }: LibraryScreenP
       <TopAppBar />
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} style={styles.scrollView}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.chipsScroll}
-          contentContainerStyle={styles.chipsContent}
-        >
-          {chips.map((chip, index) => {
-            const active = index === 0;
-            return (
-              <TouchableOpacity key={chip} activeOpacity={0.9} style={[styles.chip, active ? styles.chipActive : styles.chipInactive]}>
-                <Text style={[styles.chipText, active ? styles.chipTextActive : styles.chipTextInactive]}>{chip}</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
-
         <View style={styles.titleRow}>
           <Text style={styles.sectionTitle}>Your Library</Text>
           <View style={styles.actionsRow}>
-            <TouchableOpacity activeOpacity={0.8} style={styles.iconBtn}>
+            <TouchableOpacity activeOpacity={0.8} onPress={() => setCreateModalVisible(true)} style={styles.iconBtn}>
               <MaterialIcons color="#2F2E30" name="add" size={22} />
             </TouchableOpacity>
             <TouchableOpacity activeOpacity={0.8} style={styles.iconBtn}>
@@ -62,73 +47,34 @@ export function LibraryScreen({ onOpenPlaylistView, onTabPress }: LibraryScreenP
           </View>
         </View>
 
-        <View style={styles.createCard}>
-          <Text style={styles.createTitle}>Create Playlist</Text>
-          <TextInput
-            onChangeText={setNewPlaylistName}
-            placeholder="Playlist name"
-            placeholderTextColor="rgba(120, 118, 120, 0.45)"
-            style={styles.createInput}
-            value={newPlaylistName}
-          />
-          <TextInput
-            onChangeText={setNewPlaylistDescription}
-            placeholder="Short description"
-            placeholderTextColor="rgba(120, 118, 120, 0.45)"
-            style={[styles.createInput, styles.createTextarea]}
-            value={newPlaylistDescription}
-            multiline
-          />
-          <TouchableOpacity
-            activeOpacity={0.9}
-            onPress={() => {
-              if (!newPlaylistName.trim()) {
-                return;
-              }
-
-              const playlist = createPlaylist(newPlaylistName.trim(), newPlaylistDescription.trim());
-              setNewPlaylistName('');
-              setNewPlaylistDescription('');
-              selectPlaylist(playlist.id);
-              onOpenPlaylistView(playlist.id);
-            }}
-            style={styles.createButton}
-          >
-            <MaterialIcons color="#6D5658" name="playlist-add" size={18} />
-            <Text style={styles.createButtonText}>Create</Text>
-          </TouchableOpacity>
-        </View>
-
         <View style={styles.listWrap}>
           {playlists.map(item => (
-            <TouchableOpacity
-              activeOpacity={0.85}
+            <DepthShiftPressable
+              borderRadius={12}
               key={item.id}
               onPress={() => {
+                triggerMajorHaptic();
                 selectPlaylist(item.id);
                 onOpenPlaylistView(item.id);
               }}
               style={styles.rowItem}
             >
-              <View style={styles.thumbWrap}>
-                <View style={styles.cornerTopLeft} />
-                <View style={styles.cornerBottomRight} />
-
-                <Text style={styles.thumbText}>{item.name.slice(0, 2).toUpperCase()}</Text>
+              <View style={styles.coverWrap}>
+                <View style={styles.coverAccent} />
+                <Text style={styles.coverText}>{item.name.slice(0, 2).toUpperCase()}</Text>
               </View>
 
               <View style={styles.rowInfo}>
                 <Text numberOfLines={1} style={styles.rowTitle}>
                   {item.name}
                 </Text>
-
-                <View style={styles.metaRow}>
-                  <Text numberOfLines={1} style={styles.rowMeta}>
-                    {item.description} • {item.trackIds.length} tracks
-                  </Text>
-                </View>
+                <Text numberOfLines={2} style={styles.rowDescription}>
+                  {item.description || 'No description added.'}
+                </Text>
               </View>
-            </TouchableOpacity>
+
+              <MaterialIcons color="rgba(92, 91, 93, 0.40)" name="chevron-right" size={20} />
+            </DepthShiftPressable>
           ))}
         </View>
       </ScrollView>
@@ -152,18 +98,89 @@ export function LibraryScreen({ onOpenPlaylistView, onTabPress }: LibraryScreenP
           </View>
 
           <View style={styles.playerControls}>
-            <TouchableOpacity activeOpacity={0.8} onPress={playPrevious} style={styles.playerIconBtn}>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => {
+                triggerMajorHaptic();
+                playPrevious();
+              }}
+              style={styles.playerIconBtn}
+            >
               <MaterialIcons color="#6D5658" name="skip-previous" size={21} />
             </TouchableOpacity>
-            <TouchableOpacity activeOpacity={0.8} onPress={togglePlayback} style={styles.playerPlayBtn}>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => {
+                triggerMajorHaptic();
+                togglePlayback();
+              }}
+              style={styles.playerPlayBtn}
+            >
               <MaterialIcons color="#6D5658" name={isPlaying ? 'pause' : 'play-arrow'} size={21} />
             </TouchableOpacity>
-            <TouchableOpacity activeOpacity={0.8} onPress={playNext} style={styles.playerIconBtn}>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => {
+                triggerMajorHaptic();
+                playNext();
+              }}
+              style={styles.playerIconBtn}
+            >
               <MaterialIcons color="#6D5658" name="skip-next" size={21} />
             </TouchableOpacity>
           </View>
         </View>
       </View>
+
+      <Modal animationType="fade" transparent visible={createModalVisible} onRequestClose={() => setCreateModalVisible(false)}>
+        <View style={styles.modalOverlay}>
+          <DepthShiftPressable borderRadius={24} style={styles.modalCard}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Create Playlist</Text>
+              <TouchableOpacity activeOpacity={0.8} onPress={() => setCreateModalVisible(false)} style={styles.modalCloseBtn}>
+                <MaterialIcons color="#6D5658" name="close" size={20} />
+              </TouchableOpacity>
+            </View>
+
+            <TextInput
+              onChangeText={setNewPlaylistName}
+              placeholder="Playlist name"
+              placeholderTextColor="rgba(120, 118, 120, 0.45)"
+              style={styles.createInput}
+              value={newPlaylistName}
+            />
+            <TextInput
+              onChangeText={setNewPlaylistDescription}
+              placeholder="Short description"
+              placeholderTextColor="rgba(120, 118, 120, 0.45)"
+              style={[styles.createInput, styles.createTextarea]}
+              value={newPlaylistDescription}
+              multiline
+            />
+
+            <DepthShiftPressable
+              borderRadius={14}
+              onPress={() => {
+                if (!newPlaylistName.trim()) {
+                  return;
+                }
+
+                triggerMajorHaptic();
+                const playlist = createPlaylist(newPlaylistName.trim(), newPlaylistDescription.trim());
+                setNewPlaylistName('');
+                setNewPlaylistDescription('');
+                setCreateModalVisible(false);
+                selectPlaylist(playlist.id);
+                onOpenPlaylistView(playlist.id);
+              }}
+              style={styles.createButton}
+            >
+              <MaterialIcons color="#6D5658" name="playlist-add" size={18} />
+              <Text style={styles.createButtonText}>Create</Text>
+            </DepthShiftPressable>
+          </DepthShiftPressable>
+        </View>
+      </Modal>
 
       <BottomTabBar activeTab="library" onTabPress={onTabPress} />
     </SafeAreaView>
@@ -197,53 +214,8 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   scrollContent: {
-    paddingTop: 88,
-    paddingBottom: 210,
-  },
-  chipsScroll: {
-    marginBottom: 24,
-  },
-  chipsContent: {
-    paddingHorizontal: 24,
-    gap: 12,
-  },
-  chip: {
-    borderRadius: 999,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderWidth: 1,
-  },
-  chipActive: {
-    backgroundColor: '#F8D8DB',
-    borderColor: 'rgba(109, 86, 88, 0.10)',
-    shadowColor: '#E5BCBE',
-    shadowOpacity: 0.85,
-    shadowRadius: 12,
-    shadowOffset: { width: 6, height: 6 },
-    elevation: 5,
-  },
-  chipInactive: {
-    backgroundColor: '#F9F5F7',
-    borderColor: 'transparent',
-    shadowColor: '#E5BCBE',
-    shadowOpacity: 0.7,
-    shadowRadius: 10,
-    shadowOffset: { width: 5, height: 5 },
-    elevation: 3,
-  },
-  chipText: {
-    fontFamily: 'SpaceGrotesk-Variable',
-    fontSize: 10,
-    lineHeight: 12,
-    textTransform: 'uppercase',
-    letterSpacing: 1.6,
-    fontWeight: '700',
-  },
-  chipTextActive: {
-    color: '#6D5658',
-  },
-  chipTextInactive: {
-    color: '#787678',
+    paddingTop: 56,
+    paddingBottom: 168,
   },
   titleRow: {
     paddingHorizontal: 24,
@@ -257,7 +229,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 24,
     lineHeight: 28,
-    color: '#2F2E30',
+    color: '#6D5658',
   },
   actionsRow: {
     flexDirection: 'row',
@@ -269,34 +241,15 @@ const styles = StyleSheet.create({
   },
   listWrap: {
     paddingHorizontal: 24,
-    gap: 8,
-  },
-  createCard: {
-    marginHorizontal: 24,
-    marginBottom: 20,
-    padding: 16,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.42)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.6)',
     gap: 12,
-  },
-  createTitle: {
-    fontFamily: 'SpaceGrotesk-Variable',
-    fontSize: 14,
-    lineHeight: 18,
-    fontWeight: '700',
-    color: '#2F2E30',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
   },
   createInput: {
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 12,
     backgroundColor: '#F9F5F7',
-    fontFamily: 'Inter-Variable',
-    color: '#2F2E30',
+    fontFamily: 'SpaceGrotesk-Variable',
+    color: '#6D5658',
     shadowColor: '#E5BCBE',
     shadowOpacity: 0.35,
     shadowRadius: 8,
@@ -328,14 +281,17 @@ const styles = StyleSheet.create({
   rowItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
-    padding: 12,
-    borderRadius: 12,
+    gap: 14,
+    padding: 14,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.40)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.60)',
   },
-  thumbWrap: {
-    width: 64,
-    height: 64,
-    borderRadius: 12,
+  coverWrap: {
+    width: 72,
+    height: 72,
+    borderRadius: 16,
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
@@ -343,35 +299,16 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(109, 86, 88, 0.10)',
     position: 'relative',
   },
-  thumbCircle: {
-    borderRadius: 999,
-  },
-  cornerTopLeft: {
+  coverAccent: {
     position: 'absolute',
-    top: -2,
-    left: -2,
-    width: 12,
-    height: 12,
-    borderTopWidth: 1.5,
-    borderLeftWidth: 1.5,
-    borderTopColor: '#6D5658',
-    borderLeftColor: '#6D5658',
+    inset: 8,
+    borderRadius: 12,
+    backgroundColor: 'rgba(248, 216, 219, 0.36)',
   },
-  cornerBottomRight: {
-    position: 'absolute',
-    bottom: -2,
-    right: -2,
-    width: 12,
-    height: 12,
-    borderBottomWidth: 1.5,
-    borderRightWidth: 1.5,
-    borderBottomColor: '#6D5658',
-    borderRightColor: '#6D5658',
-  },
-  thumbText: {
+  coverText: {
     fontFamily: 'SpaceGrotesk-Variable',
-    fontSize: 20,
-    lineHeight: 24,
+    fontSize: 18,
+    lineHeight: 22,
     fontWeight: '700',
     color: '#6D5658',
   },
@@ -382,22 +319,16 @@ const styles = StyleSheet.create({
   rowTitle: {
     fontFamily: 'SpaceGrotesk-Variable',
     fontWeight: '600',
-    fontSize: 15,
+    fontSize: 16,
     lineHeight: 20,
-    color: '#2F2E30',
+    color: '#6D5658',
   },
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginTop: 2,
-  },
-  rowMeta: {
-    fontFamily: 'Inter-Variable',
+  rowDescription: {
+    marginTop: 4,
+    fontFamily: 'SpaceGrotesk-Variable',
     fontSize: 12,
     lineHeight: 16,
-    color: '#5C5B5D',
-    flex: 1,
+    color: 'rgba(109, 86, 88, 0.60)',
   },
   playerContainer: {
     position: 'absolute',
@@ -435,7 +366,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 12,
     lineHeight: 14,
-    color: '#2F2E30',
+    color: '#6D5658',
     textTransform: 'uppercase',
     letterSpacing: 0.4,
   },
@@ -443,7 +374,7 @@ const styles = StyleSheet.create({
     fontFamily: 'SpaceGrotesk-Variable',
     fontSize: 9,
     lineHeight: 12,
-    color: '#787678',
+    color: 'rgba(109, 86, 88, 0.60)',
     textTransform: 'uppercase',
     letterSpacing: 1.2,
     marginTop: 1,
@@ -465,5 +396,40 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(109, 86, 88, 0.10)',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(47, 46, 48, 0.35)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+  },
+  modalCard: {
+    width: '100%',
+    maxWidth: 460,
+    padding: 18,
+    borderRadius: 24,
+    backgroundColor: '#F9F5F7',
+    gap: 12,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  modalTitle: {
+    fontFamily: 'SpaceGrotesk-Variable',
+    fontWeight: '700',
+    fontSize: 18,
+    lineHeight: 22,
+    color: '#6D5658',
+  },
+  modalCloseBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F4F0F2',
   },
 });

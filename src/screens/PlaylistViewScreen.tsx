@@ -3,31 +3,18 @@ import { Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { BottomTabBar } from '../components/BottomTabBar';
+import { DepthShiftPressable } from '../components/DepthShiftPressable';
+import { TopAppBar } from '../components/TopAppBar';
 import { useSonara } from '../state/SonaraContext';
+import { triggerMajorHaptic } from '../theme/motion';
 
 interface PlaylistViewScreenProps {
   onTabPress: (tab: 'home' | 'search' | 'library' | 'profile') => void;
   onOpenNowPlaying: () => void;
 }
 
-type Track = {
-  id: string;
-  title: string;
-  artist: string;
-  duration: string;
-  highlighted?: boolean;
-};
-
-const tracks: Track[] = [
-  { id: '1', title: 'Vellum Structures', artist: 'Drafting Suite', duration: '4:22' },
-  { id: '2', title: 'Brutalist Echoes', artist: 'Concrete Dreams', duration: '3:58', highlighted: true },
-  { id: '3', title: 'Golden Ratio', artist: 'The Modulars', duration: '5:10' },
-  { id: '4', title: 'Isometric Flow', artist: 'Axonometric', duration: '2:45' },
-  { id: '5', title: 'Elevation B', artist: 'Linear Path', duration: '4:01' },
-];
-
 export function PlaylistViewScreen({ onOpenNowPlaying, onTabPress }: PlaylistViewScreenProps) {
-  const { addTrackToPlaylist, currentArtist, currentTrack, currentUser, isPlaying, playNext, playPrevious, playTrack, removeTrackFromPlaylist, renamePlaylist, selectedPlaylist, togglePlayback, tracks } = useSonara();
+  const { addTrackToPlaylist, currentArtist, currentTrack, currentUser, isPlaying, playNext, playPrevious, playTrack, renamePlaylist, selectedPlaylist, togglePlayback, tracks } = useSonara();
   const [playlistName, setPlaylistName] = React.useState(selectedPlaylist.name);
   const [playlistDescription, setPlaylistDescription] = React.useState(selectedPlaylist.description);
 
@@ -43,21 +30,7 @@ export function PlaylistViewScreen({ onOpenNowPlaying, onTabPress }: PlaylistVie
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.topBar}>
-        <View style={styles.brandWrap}>
-          <MaterialIcons color="#6D5658" name="architecture" size={22} />
-          <Text style={styles.brandText}>TECHNICAL ROMANTICS</Text>
-        </View>
-
-        <View style={styles.avatarWrap}>
-          <Image
-            source={{
-              uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAk1O8NuzWKx6dQK9umPUHGjE4DO9WpTrjQvfwChtLpQHq2kijhbNQV4gMdcPGM8GzV7hSAg-v8ViYMVq76vcIvcIBa-FcvzEGTDqOZWXJ9yzTLH6RQBUqMG_zw6iVjIR-nE5mM3qkQY7tFbWWIYi1jruzQnw01VArhHgX8k-6g5Dy24XVfw3xQWBYva-TjC125bXwHbdkw11q95tXaOeUcdCOMKBgsRRH94hMKx_8kZ71pynLzkfaJALmQtx_S_xLq7W0NRwWp',
-            }}
-            style={styles.avatarImg}
-          />
-        </View>
-      </View>
+      <TopAppBar />
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.headerSection}>
@@ -107,9 +80,16 @@ export function PlaylistViewScreen({ onOpenNowPlaying, onTabPress }: PlaylistVie
         </View>
 
         <View style={styles.actionsSection}>
-          <TouchableOpacity activeOpacity={0.85} onPress={onOpenNowPlaying} style={styles.playFab}>
+          <DepthShiftPressable
+            borderRadius={28}
+            onPress={() => {
+              triggerMajorHaptic();
+              onOpenNowPlaying();
+            }}
+            style={styles.playFab}
+          >
             <MaterialIcons color="#6D5658" name="play-arrow" size={36} />
-          </TouchableOpacity>
+          </DepthShiftPressable>
 
           <TouchableOpacity activeOpacity={0.85} style={styles.actionBtn}>
             <MaterialIcons color="#6D5658" name="favorite" size={20} />
@@ -141,10 +121,11 @@ export function PlaylistViewScreen({ onOpenNowPlaying, onTabPress }: PlaylistVie
 
         <View style={styles.trackList}>
           {playlistTracks.map((track, index) => (
-            <TouchableOpacity
-              activeOpacity={0.85}
+            <DepthShiftPressable
+              borderRadius={12}
               key={track.id}
               onPress={() => {
+                triggerMajorHaptic();
                 playTrack(track.id, selectedPlaylist.trackIds, selectedPlaylist.id);
                 onOpenNowPlaying();
               }}
@@ -170,17 +151,20 @@ export function PlaylistViewScreen({ onOpenNowPlaying, onTabPress }: PlaylistVie
               <TouchableOpacity activeOpacity={0.85} style={styles.trackMoreBtn}>
                 <MaterialIcons color="rgba(109, 86, 88, 0.35)" name="more-horiz" size={18} />
               </TouchableOpacity>
-            </TouchableOpacity>
+            </DepthShiftPressable>
           ))}
         </View>
 
         <View style={styles.editSection}>
           <Text style={styles.editSectionTitle}>Add More Tracks</Text>
           {availableTracks.map(track => (
-            <TouchableOpacity
-              activeOpacity={0.85}
+            <DepthShiftPressable
+              borderRadius={12}
               key={track.id}
-              onPress={() => addTrackToPlaylist(selectedPlaylist.id, track.id)}
+              onPress={() => {
+                triggerMajorHaptic();
+                addTrackToPlaylist(selectedPlaylist.id, track.id);
+              }}
               style={styles.availableTrackRow}
             >
               <View style={styles.availableInfo}>
@@ -188,7 +172,7 @@ export function PlaylistViewScreen({ onOpenNowPlaying, onTabPress }: PlaylistVie
                 <Text style={styles.availableMeta}>{track.album}</Text>
               </View>
               <MaterialIcons color="#6D5658" name="add-circle-outline" size={20} />
-            </TouchableOpacity>
+            </DepthShiftPressable>
           ))}
         </View>
       </ScrollView>
@@ -212,13 +196,33 @@ export function PlaylistViewScreen({ onOpenNowPlaying, onTabPress }: PlaylistVie
           </View>
 
           <View style={styles.miniPlayerControls}>
-            <TouchableOpacity activeOpacity={0.8} onPress={playPrevious}>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => {
+                triggerMajorHaptic();
+                playPrevious();
+              }}
+            >
               <MaterialIcons color="#6D5658" name="skip-previous" size={22} />
             </TouchableOpacity>
-            <TouchableOpacity activeOpacity={0.8} onPress={() => { togglePlayback(); onOpenNowPlaying(); }} style={styles.miniPlayerPlayBtn}>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => {
+                triggerMajorHaptic();
+                togglePlayback();
+                onOpenNowPlaying();
+              }}
+              style={styles.miniPlayerPlayBtn}
+            >
               <MaterialIcons color="#6D5658" name={isPlaying ? 'pause' : 'play-arrow'} size={20} />
             </TouchableOpacity>
-            <TouchableOpacity activeOpacity={0.8} onPress={playNext}>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => {
+                triggerMajorHaptic();
+                playNext();
+              }}
+            >
               <MaterialIcons color="#6D5658" name="skip-next" size={22} />
             </TouchableOpacity>
           </View>
@@ -235,52 +239,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F9F5F7',
   },
-  topBar: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 50,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    backgroundColor: '#F9F5F7',
-    shadowColor: 'rgba(109, 86, 88, 0.10)',
-    shadowOpacity: 1,
-    shadowRadius: 10,
-    shadowOffset: { width: 4, height: 4 },
-    elevation: 6,
-  },
-  brandWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  brandText: {
-    fontFamily: 'SpaceGrotesk-Variable',
-    fontSize: 20,
-    lineHeight: 24,
-    fontWeight: '700',
-    letterSpacing: -0.5,
-    color: '#6D5658',
-  },
-  avatarWrap: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: '#F8D8DB',
-    backgroundColor: '#F9F5F7',
-  },
-  avatarImg: {
-    width: '100%',
-    height: '100%',
-  },
   scrollContent: {
-    paddingTop: 92,
+    paddingTop: 56,
     paddingBottom: 210,
     paddingHorizontal: 24,
   },
