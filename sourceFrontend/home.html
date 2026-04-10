@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SONARA - Music Player</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface": "#f9f5f7",
+              "surface-dim": "#d7d3d6",
+              "surface-tint": "#6d5658",
+              "on-primary-fixed": "#4d383b",
+              "tertiary-dim": "#28565f",
+              "on-tertiary-fixed-variant": "#38666f",
+              "error-container": "#fb5151",
+              "surface-container-lowest": "#ffffff",
+              "secondary-container": "#e4e2e1",
+              "primary": "#6d5658",
+              "error-dim": "#9f0519",
+              "on-tertiary-fixed": "#194952",
+              "primary-fixed": "#f8d8db",
+              "inverse-surface": "#0e0e0f",
+              "primary-container": "#f8d8db",
+              "surface-container": "#ebe7e9",
+              "surface-variant": "#dfdcdf",
+              "secondary-fixed": "#e4e2e1",
+              "inverse-primary": "#f8d8db",
+              "error": "#b31b25",
+              "on-surface": "#2f2e30",
+              "tertiary": "#35626c",
+              "surface-container-highest": "#dfdcdf",
+              "primary-fixed-dim": "#e9cacd",
+              "tertiary-fixed": "#c1f0fb",
+              "background": "#f9f5f7",
+              "outline-variant": "#afacae",
+              "secondary-dim": "#504f4f",
+              "on-secondary-fixed-variant": "#5c5b5b",
+              "surface-bright": "#f9f5f7",
+              "on-error": "#ffefee",
+              "on-secondary-container": "#525251",
+              "on-secondary-fixed": "#3f3f3f",
+              "on-surface-variant": "#5c5b5d",
+              "secondary-fixed-dim": "#d6d4d3",
+              "secondary": "#5c5b5b",
+              "on-primary": "#ffeff0",
+              "surface-container-low": "#f4f0f2",
+              "tertiary-fixed-dim": "#b3e2ed",
+              "on-error-container": "#570008",
+              "outline": "#787678",
+              "on-secondary": "#f5f2f1",
+              "on-tertiary-container": "#2e5b65",
+              "on-tertiary": "#dbf8ff",
+              "on-primary-container": "#614a4d",
+              "surface-container-high": "#e5e1e4",
+              "on-primary-fixed-variant": "#6b5457",
+              "primary-dim": "#604a4d",
+              "tertiary-container": "#c1f0fb",
+              "on-background": "#2f2e30",
+              "inverse-on-surface": "#9f9c9e"
+            },
+            fontFamily: {
+              "headline": ["Space Grotesk"],
+              "body": ["Inter"],
+              "label": ["Space Grotesk"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #f9f5f7;
+            background-image: 
+                linear-gradient(rgba(109, 86, 88, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(109, 86, 88, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        .neumorphic-outset {
+            box-shadow: 10px 10px 20px #e5bcbe, -10px -10px 20px #ffffff;
+        }
+        .neumorphic-inset {
+            box-shadow: inset 5px 5px 10px #e5bcbe, inset -5px -5px 10px #ffffff;
+        }
+        .sketch-border {
+            border: 1px solid rgba(109, 86, 88, 0.15);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="font-body text-on-surface min-h-screen bg-[#f9f5f7]">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 z-50 bg-[#f9f5f7] dark:bg-rose-950/20 border-b border-[#6d5658]/10 shadow-[inset_-10px_-10px_20px_#FFFFFF,inset_10px_10px_20px_rgba(109,86,88,0.1)] flex justify-between items-center w-full px-6 py-4 max-w-full">
+<button class="w-10 h-10 flex items-center justify-center text-[#6d5658] dark:text-rose-200 hover:opacity-80 transition-opacity active:scale-95">
+<span class="material-symbols-outlined">grid_view</span>
+</button>
+<h1 class="font-['Space_Grotesk'] font-black tracking-widest text-[#6d5658] dark:text-rose-100 uppercase text-sm">SONARA</h1>
+<button class="w-10 h-10 flex items-center justify-center text-[#6d5658] dark:text-rose-200 hover:opacity-80 transition-opacity active:scale-95">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</header>
+<main class="px-6 space-y-12 pt-24 pb-52">
+<!-- Section A: Recommended for You -->
+<section>
+<div class="flex justify-between items-end mb-6">
+<div>
+<span class="font-label text-[10px] uppercase tracking-[0.15rem] text-primary/50">Curated Architecture</span>
+<h2 class="font-headline text-2xl font-bold text-primary">Recommended for You</h2>
+</div>
+<span class="font-label text-xs text-primary border-b border-primary/20 pb-1">REF-092</span>
+</div>
+<div class="flex overflow-x-auto gap-8 pb-8 -mx-6 px-6 no-scrollbar">
+<!-- Card 1 -->
+<div class="min-w-[240px] p-4 rounded-[32px] neumorphic-outset sketch-border bg-surface-container-low">
+<div class="aspect-square rounded-2xl neumorphic-inset mb-4 flex items-center justify-center relative overflow-hidden group">
+<div class="absolute inset-4 border border-primary/10 border-dashed rounded-lg"></div>
+<span class="material-symbols-outlined text-5xl text-primary/20">architecture</span>
+<div class="absolute top-2 right-2 font-label text-[8px] text-primary/40">S-01</div>
+</div>
+<div class="space-y-1">
+<h3 class="font-headline font-bold text-primary tracking-tight">Kinetic Structures</h3>
+<p class="font-label text-[10px] uppercase text-primary/60 tracking-wider">The Blueprint Collective</p>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="min-w-[240px] p-4 rounded-[32px] neumorphic-outset sketch-border bg-surface-container-low">
+<div class="aspect-square rounded-2xl neumorphic-inset mb-4 flex items-center justify-center relative overflow-hidden">
+<div class="absolute inset-8 border-2 border-primary/5 rounded-full"></div>
+<div class="w-12 h-12 border border-primary/20 rotate-45"></div>
+<span class="material-symbols-outlined text-4xl text-primary/30">category</span>
+<div class="absolute top-2 right-2 font-label text-[8px] text-primary/40">S-02</div>
+</div>
+<div class="space-y-1">
+<h3 class="font-headline font-bold text-primary tracking-tight">Vellum Echoes</h3>
+<p class="font-label text-[10px] uppercase text-primary/60 tracking-wider">Drafting Room</p>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="min-w-[240px] p-4 rounded-[32px] neumorphic-outset sketch-border bg-surface-container-low">
+<div class="aspect-square rounded-2xl neumorphic-inset mb-4 flex items-center justify-center relative overflow-hidden">
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="w-20 h-1 border-t border-primary/10 -rotate-12"></div>
+<div class="w-20 h-1 border-t border-primary/10 rotate-45"></div>
+</div>
+<span class="material-symbols-outlined text-4xl text-primary/30">square_foot</span>
+<div class="absolute top-2 right-2 font-label text-[8px] text-primary/40">S-03</div>
+</div>
+<div class="space-y-1">
+<h3 class="font-headline font-bold text-primary tracking-tight">Axis Alignment</h3>
+<p class="font-label text-[10px] uppercase text-primary/60 tracking-wider">Isometric Theory</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Section B: Trending Blueprints -->
+<section>
+<div class="flex justify-between items-end mb-6">
+<div>
+<span class="font-label text-[10px] uppercase tracking-[0.15rem] text-primary/50">Daily Calculations</span>
+<h2 class="font-headline text-2xl font-bold text-primary">Trending Blueprints</h2>
+</div>
+<span class="font-label text-xs text-primary border-b border-primary/20 pb-1">REF-105</span>
+</div>
+<div class="space-y-4">
+<div class="flex items-center gap-4 p-3 rounded-2xl hover:bg-primary-container/30 transition-colors group">
+<div class="w-14 h-14 rounded-xl neumorphic-inset sketch-border flex items-center justify-center bg-surface-container-lowest">
+<span class="material-symbols-outlined text-primary/40">grid_guides</span>
+</div>
+<div class="flex-1">
+<h4 class="font-headline font-semibold text-on-surface">Synthetic Elevations</h4>
+<p class="font-label text-[10px] uppercase text-primary/60">Architectural Pulse</p>
+</div>
+<div class="text-right">
+<span class="font-label text-[10px] text-primary/40">04:22</span>
+<button class="block mt-1 text-primary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">play_circle</span>
+</button>
+</div>
+</div>
+<div class="flex items-center gap-4 p-3 rounded-2xl hover:bg-primary-container/30 transition-colors group">
+<div class="w-14 h-14 rounded-xl neumorphic-inset sketch-border flex items-center justify-center bg-surface-container-lowest">
+<span class="material-symbols-outlined text-primary/40">pentagon</span>
+</div>
+<div class="flex-1">
+<h4 class="font-headline font-semibold text-on-surface">Brutalist Harmony</h4>
+<p class="font-label text-[10px] uppercase text-primary/60">Stone &amp; Light</p>
+</div>
+<div class="text-right">
+<span class="font-label text-[10px] text-primary/40">03:51</span>
+<button class="block mt-1 text-primary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">play_circle</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Section C: Archived Sessions -->
+<section>
+<div class="flex justify-between items-end mb-6">
+<div>
+<span class="font-label text-[10px] uppercase tracking-[0.15rem] text-primary/50">Historical Data</span>
+<h2 class="font-headline text-2xl font-bold text-primary">Archived Sessions</h2>
+</div>
+<span class="font-label text-xs text-primary border-b border-primary/20 pb-1">REF-004</span>
+</div>
+<div class="flex gap-6 overflow-x-auto no-scrollbar pb-4">
+<div class="flex flex-col items-center gap-3">
+<div class="w-16 h-16 rounded-full neumorphic-outset sketch-border flex items-center justify-center bg-surface-container-lowest">
+<span class="font-headline font-bold text-primary">AE</span>
+</div>
+<span class="font-label text-[9px] uppercase tracking-widest text-primary/70">Acoustic</span>
+</div>
+<div class="flex flex-col items-center gap-3">
+<div class="w-16 h-16 rounded-full neumorphic-outset sketch-border flex items-center justify-center bg-surface-container-lowest">
+<span class="material-symbols-outlined text-primary">change_history</span>
+</div>
+<span class="font-label text-[9px] uppercase tracking-widest text-primary/70">Trinity</span>
+</div>
+<div class="flex flex-col items-center gap-3">
+<div class="w-16 h-16 rounded-full neumorphic-outset sketch-border flex items-center justify-center bg-surface-container-lowest">
+<span class="font-headline font-bold text-primary">LS</span>
+</div>
+<span class="font-label text-[9px] uppercase tracking-widest text-primary/70">Linear</span>
+</div>
+<div class="flex flex-col items-center gap-3">
+<div class="w-16 h-16 rounded-full neumorphic-outset sketch-border flex items-center justify-center bg-surface-container-lowest">
+<span class="material-symbols-outlined text-primary">radio_button_checked</span>
+</div>
+<span class="font-label text-[9px] uppercase tracking-widest text-primary/70">Radial</span>
+</div>
+</div>
+</section>
+</main>
+<!-- Mini Player Component (Positioned to avoid overlap) -->
+<div class="fixed bottom-28 left-6 right-6 z-40 bg-surface-container-lowest/80 backdrop-blur-xl rounded-2xl neumorphic-outset sketch-border p-3 flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-primary-container flex items-center justify-center sketch-border">
+<span class="material-symbols-outlined text-primary" data-weight="fill" style="font-variation-settings: 'FILL' 1;">architecture</span>
+</div>
+<div class="flex-1 min-w-0">
+<h5 class="font-headline font-bold text-sm text-primary truncate">Kinetic Structures</h5>
+<div class="w-full h-1 bg-primary/10 rounded-full mt-2 relative">
+<div class="absolute left-0 top-0 h-full w-1/3 bg-primary rounded-full"></div>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="w-8 h-8 flex items-center justify-center text-primary active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-xl">skip_previous</span>
+</button>
+<button class="w-10 h-10 rounded-full bg-primary-container text-primary flex items-center justify-center neumorphic-outset active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center text-primary active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-xl">skip_next</span>
+</button>
+</div>
+</div>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pt-4 pb-8 bg-[#f9f5f7] dark:bg-rose-950/40 rounded-t-[32px] shadow-[0_-10px_20px_#FFFFFF,0_10px_20px_rgba(109,86,88,0.05)]">
+<a class="flex flex-col items-center justify-center bg-[#f8d8db] dark:bg-rose-800/30 text-[#6d5658] rounded-xl px-4 py-2 shadow-[inset_4px_4px_8px_rgba(109,86,88,0.1),inset_-4px_-4px_8px_#FFFFFF] transition-transform duration-300 hover:scale-105 active:scale-90" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-bold tracking-widest uppercase mt-1">HOME</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#6d5658]/50 dark:text-rose-300/50 px-4 py-2 transition-transform duration-300 hover:scale-105 active:scale-90" href="#">
+<span class="material-symbols-outlined">search</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-bold tracking-widest uppercase mt-1">SEARCH</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#6d5658]/50 dark:text-rose-300/50 px-4 py-2 transition-transform duration-300 hover:scale-105 active:scale-90" href="#">
+<span class="material-symbols-outlined">library_music</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-bold tracking-widest uppercase mt-1">LIBRARY</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#6d5658]/50 dark:text-rose-300/50 px-4 py-2 transition-transform duration-300 hover:scale-105 active:scale-90" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-bold tracking-widest uppercase mt-1">PROFILE</span>
+</a>
+</nav>
+<!-- Floating Decoration Pieces -->
+<div class="fixed top-32 -right-4 w-24 h-24 border border-primary/5 rounded-full pointer-events-none"></div>
+<div class="fixed bottom-40 -left-12 w-48 h-48 border border-primary/5 rounded-full pointer-events-none"></div>
+</body></html>
