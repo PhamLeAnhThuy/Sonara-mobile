@@ -15,7 +15,7 @@ const recommended = [
 
 const trending = [
   { id: '1', title: 'Synthetic Elevations', subtitle: 'Architectural Pulse', time: '04:22', icon: 'grid-view' },
-  { id: '2', title: 'Brutalist Harmony', subtitle: 'Stone & Light', time: '03:51', icon: 'pentagon' },
+  { id: '2', title: 'Brutalist Harmony', subtitle: 'Stone & Light', time: '03:51', icon: 'change-history' },
 ];
 
 const archived = [

@@ -57,6 +57,7 @@
 	<key>UIAppFonts</key>
 	<array>
 		<string>Inter-Variable.ttf</string>
+		<string>MaterialIcons.ttf</string>
 		<string>SpaceGrotesk-Variable.ttf</string>
 	</array>
 </dict>
